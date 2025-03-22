@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: fastfood
+  datasource:
+    url: jdbc:mysql://localhost:3306/fast_food
+    username: root
+    password: 123123za
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+logging:
+  level:
+    com.zaxxer.hikari.HikariDataSource: OFF
+    com.zaxxer.hikari: OFF
+    org.springframework.jdbc.datasource: OFF
+
