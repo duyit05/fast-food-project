@@ -10,9 +10,4 @@ spring:
     hibernate:
       ddl-auto: update
 
-logging:
-  level:
-    com.zaxxer.hikari.HikariDataSource: OFF
-    com.zaxxer.hikari: OFF
-    org.springframework.jdbc.datasource: OFF
 
