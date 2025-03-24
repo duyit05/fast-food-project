@@ -10,11 +10,16 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
+import lombok.*;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.util.Date;
 
-
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class UserRequest {
     @NotBlank(message = "username must not be blank")
     private String username;
@@ -52,39 +57,5 @@ public class UserRequest {
         this.phoneNumber = phoneNumber;
     }
 
-    public String getUsername() {
-        return username;
-    }
 
-    public String getPassword() {
-        return password;
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
-
-    public GenderType getGender() {
-        return gender;
-    }
-
-    public UserStatus getStatus() {
-        return status;
-    }
-
-    public Date getDateOrBirth() {
-        return dateOrBirth;
-    }
 }

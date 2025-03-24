@@ -19,7 +19,7 @@ public class GlobalExceptionHandler {
 
 
     @ExceptionHandler({MethodArgumentNotValidException.class, ConstraintViolationException.class,
-            HttpMessageNotReadableException.class})
+                       HttpMessageNotReadableException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handlerValidatorException(Exception exception, WebRequest request) {
         ErrorResponse response = new ErrorResponse();
