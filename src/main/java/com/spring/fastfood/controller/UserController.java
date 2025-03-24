@@ -88,7 +88,8 @@ public class UserController {
     public ResponseData<?> getAllUser(
             @RequestParam(defaultValue = "0") int pageNo,
             @RequestParam (defaultValue = "5")int pageSize,
-            @RequestParam (required = false) String sortBy) {
-        return new ResponseData<>(HttpStatus.OK.value(), "users", userService.getAllUser(pageNo, pageSize,sortBy));
+            @RequestParam (required = false) String sortBy,
+            @RequestParam(required = false) String keyword) {
+        return new ResponseData<>(HttpStatus.OK.value(), "users", userService.getAllUser(pageNo, pageSize,sortBy,keyword));
     }
 }

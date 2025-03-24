@@ -22,6 +22,7 @@ import org.yaml.snakeyaml.introspector.PropertyUtils;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -99,22 +100,31 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public PageResponse<?> getAllUser(int pageNo, int pageSize, String sortBy) {
-        int page = Math.max(pageNo - 1, 0); // Đảm bảo page không bị âm
+    public PageResponse<?> getAllUser(int pageNo, int pageSize, String sortBy, String keyword) {
+        int page = Math.max(pageNo - 1, 0); // Đảm bảo page không âm
 
         List<Sort.Order> sorts = new ArrayList<>();
 
-        // Kiểm tra có điều kiện sort không
         if (StringUtils.hasLength(sortBy)) {
             Pattern pattern = Pattern.compile("(\\w+?)(:)(asc|desc)", Pattern.CASE_INSENSITIVE);
             Matcher matcher = pattern.matcher(sortBy);
             if (matcher.find()) {
-                Sort.Direction direction = matcher.group(3).equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
+                Sort.Direction direction = matcher.group(3).equalsIgnoreCase("asc") ?
+                        Sort.Direction.ASC : Sort.Direction.DESC;
                 sorts.add(new Sort.Order(direction, matcher.group(1)));
             }
         }
         Pageable pageable = PageRequest.of(page, pageSize, Sort.by(sorts));
-        Page<User> users = userRepository.findAll(pageable);
+
+        // Chuyển từ khóa từ String thành List<String>
+        List<String> keywords = Arrays.stream(keyword.split(","))
+                .map(String::trim)
+                .map(String::toLowerCase)
+                .toList();
+
+        Page<User> users = StringUtils.hasLength(keyword) ?
+                userRepository.searchByKeywords(keywords, pageable) :
+                userRepository.findAll(pageable);
 
         List<UserResponse> response = users.getContent().stream().map(user ->
                 UserResponse.builder()
@@ -128,8 +138,7 @@ public class UserServiceImpl implements UserService {
                         .gender(user.getGender())
                         .status(user.getStatus())
                         .dateOrBirth(user.getDateOrBirth())
-                        .build()
-        ).toList();
+                        .build()).toList();
 
         return PageResponse.builder()
                 .pageNo(pageNo)
@@ -138,6 +147,7 @@ public class UserServiceImpl implements UserService {
                 .items(response)
                 .build();
     }
+
 
 
 

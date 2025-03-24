@@ -13,5 +13,5 @@ public interface UserService {
     void changeStatus (long userId, UserStatus status);
     void deleteUser (long userId);
     UserResponse getUserDetail (long userId);
-    PageResponse<?> getAllUser (int pageNo , int pageSize, String sortBy);
+    PageResponse<?> getAllUser (int pageNo , int pageSize, String sortBy,String keyword);
 }
