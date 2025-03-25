@@ -7,10 +7,10 @@ import lombok.*;
 @Setter
 @Builder
 @Entity
-@Table(name = "order_detail")
+@Table(name = "tbl_order_detail")
 @AllArgsConstructor
 @NoArgsConstructor
-public class OrderDetail extends AbstractEntity {
+public class OrderDetail extends AbstractEntity <Long> {
 
     @Column(name = "amount")
     private Integer amount;

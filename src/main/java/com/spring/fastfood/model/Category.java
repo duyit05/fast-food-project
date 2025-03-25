@@ -10,10 +10,10 @@ import java.util.List;
 @Setter
 @Builder
 @Entity
-@Table(name = "category")
+@Table(name = "tbl_category")
 @AllArgsConstructor
 @NoArgsConstructor
-public class Category extends AbstractEntity{
+public class Category extends AbstractEntity <Integer>{
 
     @Column(name = "category_name")
     private String categoryName;

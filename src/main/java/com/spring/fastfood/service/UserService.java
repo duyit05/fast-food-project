@@ -8,8 +8,8 @@ import com.spring.fastfood.enums.UserStatus;
 import java.util.List;
 
 public interface UserService {
-    long saveUser (UserRequest request);
-    void updateUser (long userId , UserRequest request);
+    UserResponse saveUser (UserRequest request);
+    UserResponse updateUser (long userId , UserRequest request);
     void changeStatus (long userId, UserStatus status);
     void deleteUser (long userId);
     UserResponse getUserDetail (long userId);

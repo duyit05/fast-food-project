@@ -13,17 +13,17 @@ import java.util.List;
 @Setter
 @Builder
 @Entity
-@Table(name = "tbl_payment")
+@Table(name = "tbl_permission")
 @AllArgsConstructor
 @NoArgsConstructor
-public class Payment extends AbstractEntity <Integer>{
+public class Permission extends AbstractEntity <Integer> {
+
+    @Column(name = "permission_name")
+    private String permissionName;
 
     @Column(name = "description")
     private String description;
 
-    @Column(name = "payment_name")
-    private String paymentName;
-
-    @OneToMany(mappedBy = "payment")
-    private List<Order> orders = new ArrayList<>();
+    @OneToMany(mappedBy = "permission")
+    private List<RoleHasPermission> roleHasPermissons = new ArrayList<>();
 }

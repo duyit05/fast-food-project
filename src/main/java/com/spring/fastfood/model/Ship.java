@@ -13,10 +13,10 @@ import java.util.List;
 @Setter
 @Builder
 @Entity
-@Table(name = "ship")
+@Table(name = "tbl_ship")
 @AllArgsConstructor
 @NoArgsConstructor
-public class Ship extends AbstractEntity {
+public class Ship extends AbstractEntity <Integer> {
     @Column(name = "description")
     private String description;
 

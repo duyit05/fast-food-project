@@ -8,10 +8,10 @@ import org.springframework.data.jpa.repository.Modifying;
 @Setter
 @Builder
 @Entity
-@Table(name = "review")
+@Table(name = "tbl_review")
 @AllArgsConstructor
 @NoArgsConstructor
-public class Review extends AbstractEntity{
+public class Review extends AbstractEntity <Long> {
 
     @Column(name = "comment")
     private String comment;

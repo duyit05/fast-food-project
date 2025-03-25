@@ -11,10 +11,10 @@ import java.util.List;
 @Setter
 @Builder
 @Entity
-@Table(name = "orders")
+@Table(name = "tbl_order")
 @AllArgsConstructor
 @NoArgsConstructor
-public class Order extends AbstractEntity{
+public class Order extends AbstractEntity <Long>{
     @Column(name = "address_receive")
     private String addressReceive;
 

@@ -1,10 +1,8 @@
 package com.spring.fastfood.controller;
 
 import com.spring.fastfood.dto.request.UserRequest;
-import com.spring.fastfood.dto.response.PageResponse;
 import com.spring.fastfood.dto.response.ResponseData;
 import com.spring.fastfood.dto.response.ResponseError;
-
 import com.spring.fastfood.dto.response.UserResponse;
 import com.spring.fastfood.enums.UserStatus;
 import com.spring.fastfood.exception.ResourceNotFoundException;
@@ -17,8 +15,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RequestMapping("/user")
 @RestController
 @Validated
@@ -29,10 +25,9 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/")
-    public ResponseData<?> addUser(@Valid @RequestBody UserRequest request) {
+    public ResponseData<UserResponse> addUser(@Valid @RequestBody UserRequest request) {
         try {
-            long userId = userService.saveUser(request);
-            return new ResponseData<>(HttpStatus.CREATED.value(), "User added", userId);
+            return new ResponseData<>(HttpStatus.CREATED.value(), "User added", userService.saveUser(request));
         } catch (Exception e) {
             log.error("errorMessage = {}", e.getMessage(), e.getCause());
             return new ResponseError(HttpStatus.BAD_REQUEST.value(), "Create user fail");
@@ -40,7 +35,7 @@ public class UserController {
     }
 
     @PutMapping("/{userId}")
-    public ResponseData<?> updateUser(@PathVariable @Min(1) int userId, @Valid @RequestBody UserRequest request) {
+    public ResponseData<UserResponse> updateUser(@PathVariable @Min(1) int userId, @Valid @RequestBody UserRequest request) {
         try {
             userService.updateUser(userId,request);
             return new ResponseData<>(HttpStatus.BAD_REQUEST.value(), "user update successfully");

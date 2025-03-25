@@ -7,10 +7,10 @@ import lombok.*;
 @Setter
 @Builder
 @Entity
-@Table(name = "wish_list")
+@Table(name = "tbl_wish_list")
 @AllArgsConstructor
 @NoArgsConstructor
-public class WishList extends AbstractEntity{
+public class WishList extends AbstractEntity <Long>{
 
     @ManyToOne
     @JoinColumn(name = "food_id")

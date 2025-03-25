@@ -7,10 +7,10 @@ import lombok.*;
 @Setter
 @Builder
 @Entity
-@Table(name = "images")
+@Table(name = "tbl_image")
 @AllArgsConstructor
 @NoArgsConstructor
-public class Image extends AbstractEntity{
+public class Image extends AbstractEntity <Long>{
 
     @Column(name = "data_iamge")
     private String dataImage;

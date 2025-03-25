@@ -13,10 +13,10 @@ import java.util.List;
 @Setter
 @Builder
 @Entity
-@Table(name = "user")
+@Table(name = "tbl_user")
 @AllArgsConstructor
 @NoArgsConstructor
-public class User extends AbstractEntity{
+public class User extends AbstractEntity <Long>{
 
     @Column(name = "username")
     private String username;
@@ -48,7 +48,7 @@ public class User extends AbstractEntity{
     private Date dateOrBirth;
 
     @OneToMany(mappedBy = "user" , cascade = CascadeType.ALL , orphanRemoval = true)
-    private List<UserRole> userRoles = new ArrayList<>();
+    private List<UserHasRole> userRoles = new ArrayList<>();
 
     @OneToMany(mappedBy = "user" , cascade = CascadeType.ALL)
     private List<WishList> wishLists = new ArrayList<>();
@@ -58,4 +58,7 @@ public class User extends AbstractEntity{
 
     @OneToMany(mappedBy = "user" , cascade = CascadeType.ALL)
     private List<Order> orders = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<GroupHasUser> groupHasUsers = new ArrayList<>();
 }

@@ -10,10 +10,10 @@ import java.util.List;
 @Setter
 @Builder
 @Entity
-@Table(name = "food")
+@Table(name = "tbl_food")
 @AllArgsConstructor
 @NoArgsConstructor
-public class Food extends AbstractEntity{
+public class Food extends AbstractEntity <Long>{
 
     @Column(name = "stock")
     private Integer stock;

@@ -6,6 +6,7 @@ import com.spring.fastfood.dto.response.ResponseData;
 import com.spring.fastfood.dto.response.UserResponse;
 import com.spring.fastfood.enums.UserStatus;
 import com.spring.fastfood.exception.ResourceNotFoundException;
+import com.spring.fastfood.mapper.UserMapper;
 import com.spring.fastfood.model.User;
 import com.spring.fastfood.repository.UserRepository;
 import com.spring.fastfood.service.UserService;
@@ -34,38 +35,19 @@ import java.util.stream.Collectors;
 @Slf4j
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
     @Override
-    public long saveUser(UserRequest request) {
-        User user = User.builder()
-                .firstName(request.getFirstName())
-                .lastName(request.getLastName())
-                .username(request.getUsername())
-                .password(request.getPassword())
-                .email(request.getEmail())
-                .phoneNumber(request.getPhoneNumber())
-                .gender(request.getGender())
-                .status(request.getStatus())
-                .dateOrBirth(request.getDateOrBirth())
-                .build();
-        userRepository.save(user);
-        return user.getId();
+    public UserResponse saveUser(UserRequest request) {
+        User user = userMapper.toUser(request);
+        return userMapper.toUserResponse(userRepository.save(user));
     }
 
     @Override
-    public void updateUser(long userId, UserRequest request) {
+    public UserResponse updateUser(long userId, UserRequest request) {
         User user = getUserById(userId);
-        user.setFirstName(request.getFirstName());
-        user.setLastName(request.getLastName());
-        user.setUsername(request.getUsername());
-        user.setPassword(request.getPassword());
-        user.setEmail(request.getEmail());
-        user.setPhoneNumber(request.getPhoneNumber());
-        user.setGender(request.getGender());
-        user.setStatus(request.getStatus());
-        user.setDateOrBirth(request.getDateOrBirth());
-        userRepository.save(user);
-        log.error("User update successfully");
+        userMapper.updateUser(user,request);
+        return userMapper.toUserResponse(userRepository.save(user));
     }
 
     @Override
@@ -85,27 +67,20 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse getUserDetail(long userId) {
         User user = getUserById(userId);
-        return UserResponse.builder()
-                .id(user.getId())
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .username(user.getUsername())
-                .password(user.getPassword())
-                .email(user.getEmail())
-                .phoneNumber(user.getPhoneNumber())
-                .gender(user.getGender())
-                .status(user.getStatus())
-                .dateOrBirth(user.getDateOrBirth())
-                .build();
+        return userMapper.toUserResponse(user);
     }
 
     @Override
     public PageResponse<?> getAllUser(int pageNo, int pageSize, String sortBy, String keyword) {
-        int page = Math.max(pageNo - 1, 0); // Đảm bảo page không âm
+        // Trường hợp page không số âm
+        int page = Math.max(pageNo - 1, 0);
 
         List<Sort.Order> sorts = new ArrayList<>();
 
+        // Kiểm tra xem có điều kiện sort không
         if (StringUtils.hasLength(sortBy)) {
+                                                    //   1       2     3
+                                                    // firstName : asc | desc
             Pattern pattern = Pattern.compile("(\\w+?)(:)(asc|desc)", Pattern.CASE_INSENSITIVE);
             Matcher matcher = pattern.matcher(sortBy);
             if (matcher.find()) {
@@ -126,19 +101,7 @@ public class UserServiceImpl implements UserService {
                 userRepository.searchByKeywords(keywords, pageable) :
                 userRepository.findAll(pageable);
 
-        List<UserResponse> response = users.getContent().stream().map(user ->
-                UserResponse.builder()
-                        .id(user.getId())
-                        .firstName(user.getFirstName())
-                        .lastName(user.getLastName())
-                        .username(user.getUsername())
-                        .password(user.getPassword())
-                        .email(user.getEmail())
-                        .phoneNumber(user.getPhoneNumber())
-                        .gender(user.getGender())
-                        .status(user.getStatus())
-                        .dateOrBirth(user.getDateOrBirth())
-                        .build()).toList();
+        List<UserResponse> response = userMapper.toUserResponseList(users.getContent());
 
         return PageResponse.builder()
                 .pageNo(pageNo)
@@ -147,8 +110,6 @@ public class UserServiceImpl implements UserService {
                 .items(response)
                 .build();
     }
-
-
 
 
     private User getUserById(long userId) {

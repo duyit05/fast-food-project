@@ -9,19 +9,17 @@ import lombok.*;
 @Getter
 @Setter
 @Builder
-@Entity
-@Table(name = "user_role")
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserRole extends AbstractEntity {
+@Entity
+@Table(name = "tbl_role_has_permission")
+public class RoleHasPermission extends AbstractEntity <Integer> {
 
     @ManyToOne
-    @JoinColumn(name = "user_id" , nullable = false)
-    private User user;
-
-    @ManyToOne
-    @JoinColumn(name = "role_id" , nullable = false)
+    @JoinColumn(name = "role_id")
     private Role role;
 
-
+    @ManyToOne
+    @JoinColumn(name = "permission_id")
+    private Permission permission;
 }
