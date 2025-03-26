@@ -4,6 +4,7 @@ import com.spring.fastfood.dto.request.UserRequest;
 import com.spring.fastfood.dto.response.PageResponse;
 import com.spring.fastfood.dto.response.UserResponse;
 import com.spring.fastfood.enums.UserStatus;
+import org.springframework.security.core.userdetails.UserDetailsService;
 
 import java.util.List;
 
@@ -14,4 +15,6 @@ public interface UserService {
     void deleteUser (long userId);
     UserResponse getUserDetail (long userId);
     PageResponse<?> getAllUser (int pageNo , int pageSize, String sortBy,String keyword);
+
+    UserDetailsService userDetailsService ();
 }

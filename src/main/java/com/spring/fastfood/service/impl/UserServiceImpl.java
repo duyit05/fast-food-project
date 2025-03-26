@@ -2,7 +2,6 @@ package com.spring.fastfood.service.impl;
 
 import com.spring.fastfood.dto.request.UserRequest;
 import com.spring.fastfood.dto.response.PageResponse;
-import com.spring.fastfood.dto.response.ResponseData;
 import com.spring.fastfood.dto.response.UserResponse;
 import com.spring.fastfood.enums.UserStatus;
 import com.spring.fastfood.exception.ResourceNotFoundException;
@@ -16,19 +15,17 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.yaml.snakeyaml.introspector.PropertyUtils;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
+
 
 @Service
 @RequiredArgsConstructor
@@ -92,10 +89,13 @@ public class UserServiceImpl implements UserService {
         Pageable pageable = PageRequest.of(page, pageSize, Sort.by(sorts));
 
         // Chuyển từ khóa từ String thành List<String>
-        List<String> keywords = Arrays.stream(keyword.split(","))
+        List<String> keywords = StringUtils.hasLength(keyword)
+                ? Arrays.stream(keyword.split(","))
                 .map(String::trim)
                 .map(String::toLowerCase)
-                .toList();
+                .toList()
+                : new ArrayList<>();
+
 
         Page<User> users = StringUtils.hasLength(keyword) ?
                 userRepository.searchByKeywords(keywords, pageable) :
@@ -115,5 +115,11 @@ public class UserServiceImpl implements UserService {
     private User getUserById(long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Can't find user id : " + userId));
+    }
+
+    @Override
+    public UserDetailsService userDetailsService() {
+        return username ->  userRepository.findByUsername(username)
+                .orElseThrow(()-> new UsernameNotFoundException("user not found"));
     }
 }

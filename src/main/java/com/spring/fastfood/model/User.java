@@ -4,8 +4,12 @@ import com.spring.fastfood.enums.GenderType;
 import com.spring.fastfood.enums.UserStatus;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -16,7 +20,7 @@ import java.util.List;
 @Table(name = "tbl_user")
 @AllArgsConstructor
 @NoArgsConstructor
-public class User extends AbstractEntity <Long>{
+public class User extends AbstractEntity <Long> implements UserDetails, Serializable {
 
     @Column(name = "username")
     private String username;
@@ -61,4 +65,29 @@ public class User extends AbstractEntity <Long>{
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<GroupHasUser> groupHasUsers = new ArrayList<>();
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return null;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return UserDetails.super.isAccountNonExpired();
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return UserDetails.super.isAccountNonLocked();
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return UserDetails.super.isCredentialsNonExpired();
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return UserDetails.super.isEnabled();
+    }
 }
