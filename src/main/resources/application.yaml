@@ -10,4 +10,8 @@ spring:
     hibernate:
       ddl-auto: update
 
+jwt:
+  expiry-time: 1
+  expiry-day: 14
+  secret-key: 8AFC9F50E8AD9DCEE8D0C1CC7F8956A80B1AB34A30C32E8304DAAB197C77B1A5
 
