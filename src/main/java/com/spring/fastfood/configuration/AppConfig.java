@@ -8,6 +8,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -21,6 +22,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 @RequiredArgsConstructor
+@EnableMethodSecurity
 public class AppConfig {
 
     private final UserService userService;
@@ -67,13 +69,13 @@ public class AppConfig {
     }
 
     // Swagger
-    @Bean
-    public WebSecurityCustomizer webSecurityCustomizer() {
-        return webSecurity -> {
-            webSecurity.ignoring().requestMatchers("/actuator/**", "/v3/**", "/webjars/**",
-                    "/swagger-ui*/*swagger-initialized.js", "swagger-ui*/**");
-        };
-    }
+//    @Bean
+//    public WebSecurityCustomizer webSecurityCustomizer() {
+//        return webSecurity -> {
+//            webSecurity.ignoring().requestMatchers("/actuator/**", "/v3/**", "/webjars/**",
+//                    "/swagger-ui*/*swagger-initialized.js", "swagger-ui*/**");
+//        };
+//    }
 
     // quản lý các role và user
     @Bean

@@ -5,13 +5,12 @@ import com.spring.fastfood.enums.UserStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -51,8 +50,8 @@ public class User extends AbstractEntity <Long> implements UserDetails, Serializ
     @Column(name = "date_or_birth")
     private Date dateOrBirth;
 
-    @OneToMany(mappedBy = "user" , cascade = CascadeType.ALL , orphanRemoval = true)
-    private List<UserHasRole> userRoles = new ArrayList<>();
+    @OneToMany(mappedBy = "user" ,fetch = FetchType.EAGER,cascade = CascadeType.ALL , orphanRemoval = true)
+    private List<UserHasRole> roles = new ArrayList<>();
 
     @OneToMany(mappedBy = "user" , cascade = CascadeType.ALL)
     private List<WishList> wishLists = new ArrayList<>();
@@ -64,11 +63,17 @@ public class User extends AbstractEntity <Long> implements UserDetails, Serializ
     private List<Order> orders = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<GroupHasUser> groupHasUsers = new ArrayList<>();
+    private List<GroupHasUser> groups = new ArrayList<>();
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null;
+        if (roles == null) return Collections.emptyList();
+        return roles.stream()
+                .map(UserHasRole::getRole)
+                .filter(Objects::nonNull)
+                .map(Role::getRoleName)
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toList());
     }
 
     @Override

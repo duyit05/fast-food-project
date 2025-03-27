@@ -12,6 +12,7 @@ import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,6 +26,7 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseData<UserResponse> addUser(@Valid @RequestBody UserRequest request) {
         try {
             return new ResponseData<>(HttpStatus.CREATED.value(), "User added", userService.saveUser(request));
@@ -70,6 +72,7 @@ public class UserController {
     }
 
     @GetMapping("/{userId}")
+    @PreAuthorize("hasAuthority('USER')")
     public ResponseData<UserResponse> getUser(@PathVariable @Min(1) int userId) {
         try {
             return new ResponseData<>(HttpStatus.OK.value(), "user", userService.getUserDetail(userId));
@@ -80,6 +83,7 @@ public class UserController {
     }
 
     @GetMapping("/list")
+    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER')")
     public ResponseData<?> getAllUser(
             @RequestParam(defaultValue = "0") int pageNo,
             @RequestParam (defaultValue = "5")int pageSize,

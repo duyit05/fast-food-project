@@ -12,13 +12,19 @@ import com.spring.fastfood.service.TokenService;
 import io.micrometer.common.util.StringUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthenticationImpl implements AuthenticationService {
 
     private final UserRepository userRepository;
@@ -28,13 +34,17 @@ public class AuthenticationImpl implements AuthenticationService {
 
     @Override
     public TokenResponse authenticated(SigInRequest request) {
+        List<String> authorities = new ArrayList<>();
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new UsernameNotFoundException("user name or password invalid"));
 
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken
+        Authentication authentication =  authenticationManager.authenticate(new UsernamePasswordAuthenticationToken
                 (request.getUsername(), request.getPassword()));
-        String accessToken = jwtService.generateToken(user);
-        String refreshToken = jwtService.refreshToken(user);
+        log.info("isAuthenticated : {}" , authentication.isAuthenticated());
+        log.info("Authorities : {}" , authentication.getAuthorities().toString());
+        authentication.getAuthorities().forEach(auth -> authorities.add(auth.getAuthority()));
+        String accessToken = jwtService.generateToken(user,authorities);
+        String refreshToken = jwtService.refreshToken(user,authorities);
 
         // lưu token vào db
         tokenService.saveToken(Token.builder()
@@ -66,7 +76,9 @@ public class AuthenticationImpl implements AuthenticationService {
         if (!jwtService.isValidToken(refreshToken, TokenType.REFRESH_TOKEN, user)) {
             throw new InterruptedException("Token invalid");
         }
-        String accessToken = jwtService.generateToken(user);
+        List<String> authorities = new ArrayList<>();
+        user.getAuthorities().forEach(authority -> authorities.add(authority.getAuthority()));
+        String accessToken = jwtService.generateToken(user,authorities);
         return TokenResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)

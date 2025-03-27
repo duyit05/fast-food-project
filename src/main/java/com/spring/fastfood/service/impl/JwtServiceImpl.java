@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -38,13 +39,17 @@ public class JwtServiceImpl implements JwtService {
     private long JWT_EXPIRY_DAY;
 
     @Override
-    public String generateToken(UserDetails user) {
-        return generateToken(new HashMap<>(), user);
+    public String generateToken(UserDetails user, List<String> authorities) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("role" , authorities);
+        return generateToken(claims, user);
     }
 
     @Override
-    public String refreshToken(UserDetails userDetails) {
-        return generateRefreshToken(new HashMap<>(), userDetails);
+    public String refreshToken(UserDetails userDetails,List<String> authorities) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("role" , authorities);
+        return generateRefreshToken(claims, userDetails);
     }
 
     public String generateToken(Map<String, Object> claims, UserDetails userDetails) {
