@@ -1,6 +1,7 @@
 package com.spring.fastfood.controller;
 
 import com.spring.fastfood.dto.request.SigInRequest;
+import com.spring.fastfood.dto.response.ResponseError;
 import com.spring.fastfood.dto.response.TokenResponse;
 import com.spring.fastfood.service.AuthenticationService;
 import com.spring.fastfood.service.UserService;
@@ -22,7 +23,9 @@ public class AuthenticationController {
 
     @PostMapping("/login")
     public ResponseEntity<TokenResponse> login(@RequestBody SigInRequest request) {
-        return new ResponseEntity<>(authenticationService.authenticated(request), HttpStatus.OK);
+            return new ResponseEntity<>(authenticationService.authenticated(request), HttpStatus.OK);
+
+
     }
 
     @PostMapping("/refresh")

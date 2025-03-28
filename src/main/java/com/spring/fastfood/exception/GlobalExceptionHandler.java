@@ -1,8 +1,14 @@
 package com.spring.fastfood.exception;
 
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -12,7 +18,8 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 
 import java.util.Date;
 
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.*;
+import static org.springframework.http.MediaType.*;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -65,5 +72,62 @@ public class GlobalExceptionHandler {
             response.setMessage("Failed to convert String to int");
         }
         return response;
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "401", description = "Unauthorized",
+                    content = {@Content(mediaType = APPLICATION_JSON_VALUE,
+                            examples = @ExampleObject(
+                                    name = "401 Response",
+                                    summary = "Handle exception when unauthorized",
+                                    value = """
+                                            {
+                                              "timestamp": "2023-10-19T06:07:35.321+00:00",
+                                              "status": 401,
+                                              "path": "/api/v1/...",
+                                              "error": "Unauthorized",
+                                              "message": "Unauthorized"
+                                            }
+                                            """
+                            ))})
+    })
+    public ErrorResponse handleResourceNotFoundException(BadCredentialsException e, WebRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse.setTimestamp(new Date());
+        errorResponse.setPath(request.getDescription(false).replace("uri=", ""));
+        errorResponse.setStatus(UNAUTHORIZED.value());
+        errorResponse.setError(UNAUTHORIZED.getReasonPhrase());
+        errorResponse.setMessage(e.getMessage());
+
+        return errorResponse;
+    }
+
+    @ExceptionHandler({ForBiddenException.class, AccessDeniedException.class})
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "403", description = "Forbidden",
+                    content = {@Content(mediaType = APPLICATION_JSON_VALUE,
+                            examples = @ExampleObject(
+                                    name = "403 Response",
+                                    summary = "Handle exception when access forbidden",
+                                    value = """
+                                            {
+                                              "timestamp": "2023-10-19T06:07:35.321+00:00",
+                                              "status": 403,
+                                              "path": "/api/v1/...",
+                                              "error": "Access Dined",
+                                              "message": "Access is denied"
+                                            }
+                                            """
+                            ))})
+    })
+    public ErrorResponse handleAccessDeniedException(Exception e, WebRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse.setTimestamp(new Date());
+        errorResponse.setPath(request.getDescription(false).replace("uri=", ""));
+        errorResponse.setStatus(FORBIDDEN.value());
+        errorResponse.setError(FORBIDDEN.getReasonPhrase());
+        errorResponse.setMessage(e.getMessage());
+        return errorResponse;
     }
 }

@@ -3,6 +3,7 @@ package com.spring.fastfood.service.impl;
 import com.spring.fastfood.dto.request.SigInRequest;
 import com.spring.fastfood.dto.response.TokenResponse;
 import com.spring.fastfood.enums.TokenType;
+import com.spring.fastfood.exception.ResourceNotFoundException;
 import com.spring.fastfood.model.Token;
 import com.spring.fastfood.model.User;
 import com.spring.fastfood.repository.UserRepository;
@@ -13,7 +14,10 @@ import io.micrometer.common.util.StringUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -35,29 +39,32 @@ public class AuthenticationImpl implements AuthenticationService {
     @Override
     public TokenResponse authenticated(SigInRequest request) {
         List<String> authorities = new ArrayList<>();
-        User user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new UsernameNotFoundException("user name or password invalid"));
+        try {
+            User user = userRepository.findByUsername(request.getUsername())
+                    .orElseThrow(() -> new BadCredentialsException("user name or password incorrect"));
 
-        Authentication authentication =  authenticationManager.authenticate(new UsernamePasswordAuthenticationToken
-                (request.getUsername(), request.getPassword()));
-        log.info("isAuthenticated : {}" , authentication.isAuthenticated());
-        log.info("Authorities : {}" , authentication.getAuthorities().toString());
-        authentication.getAuthorities().forEach(auth -> authorities.add(auth.getAuthority()));
-        String accessToken = jwtService.generateToken(user,authorities);
-        String refreshToken = jwtService.refreshToken(user,authorities);
-
-        // lưu token vào db
-        tokenService.saveToken(Token.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .username(user.getUsername())
-                .build());
-
-        return TokenResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .userId(user.getId())
-                .build();
+            Authentication authentication =  authenticationManager.authenticate(new UsernamePasswordAuthenticationToken
+                    (request.getUsername(), request.getPassword()));
+            log.info("isAuthenticated : {}" , authentication.isAuthenticated());
+            log.info("Authorities : {}" , authentication.getAuthorities().toString());
+            authentication.getAuthorities().forEach(auth -> authorities.add(auth.getAuthority()));
+            String accessToken = jwtService.generateToken(user,authorities);
+            String refreshToken = jwtService.refreshToken(user,authorities);
+            // lưu token vào db
+            tokenService.saveToken(Token.builder()
+                    .accessToken(accessToken)
+                    .refreshToken(refreshToken)
+                    .username(user.getUsername())
+                    .build());
+            return TokenResponse.builder()
+                    .accessToken(accessToken)
+                    .refreshToken(refreshToken)
+                    .userId(user.getId())
+                    .build();
+        }catch (BadCredentialsException | DisabledException e){
+            log.error("errorMessage: {}", e.getMessage());
+            throw new BadCredentialsException(e.getMessage());
+        }
     }
 
     @Override

@@ -37,6 +37,7 @@ public class UserController {
     }
 
     @PutMapping("/{userId}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseData<UserResponse> updateUser(@PathVariable @Min(1) int userId, @Valid @RequestBody UserRequest request) {
         try {
             userService.updateUser(userId,request);
@@ -48,6 +49,7 @@ public class UserController {
     }
 
     @PatchMapping("/{userId}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseData<?> updateStatus(@Min(1) @PathVariable int userId,
                                         @RequestParam UserStatus status) {
         try {
@@ -60,6 +62,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{userId}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseData<?> deleteUser(@PathVariable @Min(value = 1,
                                       message = "userId must be greater than 0") int userId) {
         try {
@@ -72,7 +75,7 @@ public class UserController {
     }
 
     @GetMapping("/{userId}")
-    @PreAuthorize("hasAuthority('USER')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseData<UserResponse> getUser(@PathVariable @Min(1) int userId) {
         try {
             return new ResponseData<>(HttpStatus.OK.value(), "user", userService.getUserDetail(userId));
@@ -83,7 +86,7 @@ public class UserController {
     }
 
     @GetMapping("/list")
-    @PreAuthorize("hasAnyAuthority('ADMIN','MANAGER')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseData<?> getAllUser(
             @RequestParam(defaultValue = "0") int pageNo,
             @RequestParam (defaultValue = "5")int pageSize,
