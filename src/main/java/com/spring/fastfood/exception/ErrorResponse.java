@@ -16,6 +16,11 @@ public class ErrorResponse {
     private String error;
     private String message;
 
+    public ErrorResponse(int status, String message) {
+        this.status = status;
+        this.message = message;
+    }
+
     public ErrorResponse(String path, String message) {
         this.path = path;
         this.message = message;

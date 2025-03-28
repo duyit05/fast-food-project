@@ -27,7 +27,7 @@ public class AppConfig {
 
     private final UserService userService;
     private final PreFilter preFilter;
-    private final String[] WHITE_LIST = {"/auth/**"};
+    private final String[] WHITE_LIST = {"/auth/**" , "/send-mail/**,/user/"};
 
     @Bean
     public WebMvcConfigurer mvcConfigurer() {

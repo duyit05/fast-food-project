@@ -1,8 +1,10 @@
 package com.spring.fastfood.service.impl;
 
 import com.spring.fastfood.dto.request.SigInRequest;
+import com.spring.fastfood.dto.response.ResponseActive;
 import com.spring.fastfood.dto.response.TokenResponse;
 import com.spring.fastfood.enums.TokenType;
+import com.spring.fastfood.enums.UserStatus;
 import com.spring.fastfood.exception.ResourceNotFoundException;
 import com.spring.fastfood.model.Token;
 import com.spring.fastfood.model.User;
@@ -36,6 +38,7 @@ public class AuthenticationImpl implements AuthenticationService {
     private final JwtService jwtService;
     private final TokenService tokenService;
 
+
     @Override
     public TokenResponse authenticated(SigInRequest request) {
         List<String> authorities = new ArrayList<>();
@@ -43,6 +46,9 @@ public class AuthenticationImpl implements AuthenticationService {
             User user = userRepository.findByUsername(request.getUsername())
                     .orElseThrow(() -> new BadCredentialsException("user name or password incorrect"));
 
+            if(user.getStatus().equals(UserStatus.INACTIVE)){
+                throw new BadCredentialsException("user has been not active");
+            }
             Authentication authentication =  authenticationManager.authenticate(new UsernamePasswordAuthenticationToken
                     (request.getUsername(), request.getPassword()));
             log.info("isAuthenticated : {}" , authentication.isAuthenticated());
@@ -107,5 +113,24 @@ public class AuthenticationImpl implements AuthenticationService {
         // delete token
         tokenService.deleteToken(currentToken);
         return "logout success";
+    }
+
+    @Override
+    public ResponseActive sendMailActive(String email, String activeCode){
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BadCredentialsException("email not exist"));
+
+        if(user.getStatus().equals(UserStatus.ACTIVE)){
+            throw new BadCredentialsException ("user has been active");
+        }
+
+        if(activeCode.equals(user.getActiveCode())){
+            user.setStatus(UserStatus.ACTIVE);
+        }
+        userRepository.save(user);
+        return ResponseActive.builder()
+                .message("active user succesfully")
+                .email(user.getEmail())
+                .build();
     }
 }

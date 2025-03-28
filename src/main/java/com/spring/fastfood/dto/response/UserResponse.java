@@ -21,19 +21,13 @@ import java.util.Date;
 public class UserResponse implements Serializable {
     private Long id;
     private String username;
-
     private String password;
-
     private String firstName;
-
     private String lastName;
-
     private String email;
-
     private String phoneNumber;
-
     private GenderType gender;
-
     private UserStatus status;
     private Date dateOrBirth;
+    private String activeCode;
 }

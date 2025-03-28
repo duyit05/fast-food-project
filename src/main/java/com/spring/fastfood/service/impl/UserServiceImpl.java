@@ -8,6 +8,7 @@ import com.spring.fastfood.exception.ResourceNotFoundException;
 import com.spring.fastfood.mapper.UserMapper;
 import com.spring.fastfood.model.User;
 import com.spring.fastfood.repository.UserRepository;
+import com.spring.fastfood.service.EmailService;
 import com.spring.fastfood.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +24,7 @@ import org.springframework.util.StringUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -33,10 +35,14 @@ import java.util.regex.Pattern;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final EmailService emailService;
 
     @Override
     public UserResponse saveUser(UserRequest request) {
         User user = userMapper.toUser(request);
+        user.setStatus(UserStatus.INACTIVE);
+        user.setActiveCode(randomCode());
+        emailService.sendEmailActive(user.getEmail(),user.getActiveCode());
         return userMapper.toUserResponse(userRepository.save(user));
     }
 
@@ -121,5 +127,11 @@ public class UserServiceImpl implements UserService {
     public UserDetailsService userDetailsService() {
         return username ->  userRepository.findByUsername(username)
                 .orElseThrow(()-> new UsernameNotFoundException("user not found"));
+    }
+
+    public String randomCode (){
+        Random random = new Random();
+        int code = random.nextInt(900000) + 100000;
+        return String.valueOf(code);
     }
 }

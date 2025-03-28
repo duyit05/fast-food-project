@@ -50,6 +50,9 @@ public class User extends AbstractEntity <Long> implements UserDetails, Serializ
     @Column(name = "date_or_birth")
     private Date dateOrBirth;
 
+    @Column(name = "active_code")
+    private String activeCode;
+
     @OneToMany(mappedBy = "user" ,fetch = FetchType.EAGER,cascade = CascadeType.ALL , orphanRemoval = true)
     private List<UserHasRole> roles = new ArrayList<>();
 

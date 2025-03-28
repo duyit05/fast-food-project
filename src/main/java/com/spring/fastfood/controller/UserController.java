@@ -26,7 +26,6 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/")
-    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseData<UserResponse> addUser(@Valid @RequestBody UserRequest request) {
         try {
             return new ResponseData<>(HttpStatus.CREATED.value(), "User added", userService.saveUser(request));

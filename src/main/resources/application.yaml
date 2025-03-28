@@ -10,10 +10,20 @@ spring:
     hibernate:
       ddl-auto: update
 
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: duynvde160530@fpt.edu.vn
+    password: iskb itfy wumv jnqv
+    protocol: smtp
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+      mail.smtp.starttls.required: true
+      mail.smtp.ssl.enable: false
+
 jwt:
   expiry-time: 1
   expiry-day: 14
   secret-key: 8AFC9F50E8AD9DCEE8D0C1CC7F8956A80B1AB34A30C32E8304DAAB197C77B1A5
   secret-refresh-key: oh9V0nBLReCFKJUa4X0R+4UCH4x9am8ccklRiBmYJYY=
-
-

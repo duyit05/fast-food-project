@@ -1,8 +1,11 @@
 package com.spring.fastfood.controller;
 
 import com.spring.fastfood.dto.request.SigInRequest;
+import com.spring.fastfood.dto.response.ResponseActive;
+import com.spring.fastfood.dto.response.ResponseData;
 import com.spring.fastfood.dto.response.ResponseError;
 import com.spring.fastfood.dto.response.TokenResponse;
+import com.spring.fastfood.exception.ErrorResponse;
 import com.spring.fastfood.service.AuthenticationService;
 import com.spring.fastfood.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -37,5 +40,10 @@ public class AuthenticationController {
     @PostMapping("/logout")
     public ResponseEntity<String> logout(HttpServletRequest request) throws InterruptedException {
         return new ResponseEntity<>(authenticationService.logout(request), HttpStatus.OK);
+    }
+
+    @GetMapping("/active")
+    public ResponseData<ResponseActive> sendMailActive(@RequestParam String email , @RequestParam String activeCode){
+            return new ResponseData<>(HttpStatus.OK.value(),"active",authenticationService.sendMailActive(email,activeCode));
     }
 }
