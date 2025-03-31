@@ -1,13 +1,11 @@
 package com.spring.fastfood.controller;
 
+import com.spring.fastfood.dto.request.ResetPasswordRequest;
 import com.spring.fastfood.dto.request.SigInRequest;
-import com.spring.fastfood.dto.response.ResponseActive;
-import com.spring.fastfood.dto.response.ResponseData;
-import com.spring.fastfood.dto.response.ResponseError;
+import com.spring.fastfood.dto.response.ActiveResponse;
+import com.spring.fastfood.dto.response.DateResponse;
 import com.spring.fastfood.dto.response.TokenResponse;
-import com.spring.fastfood.exception.ErrorResponse;
 import com.spring.fastfood.service.AuthenticationService;
-import com.spring.fastfood.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +41,18 @@ public class AuthenticationController {
     }
 
     @GetMapping("/active")
-    public ResponseData<ResponseActive> sendMailActive(@RequestParam String email , @RequestParam String activeCode){
-            return new ResponseData<>(HttpStatus.OK.value(),"active",authenticationService.sendMailActive(email,activeCode));
+    public DateResponse<ActiveResponse> sendMailActive(@RequestParam String email , @RequestParam String activeCode){
+            return new DateResponse<>(HttpStatus.OK.value(),"active",authenticationService.sendMailActive(email,activeCode));
     }
+
+    @GetMapping("/forgot-password")
+    public DateResponse<ActiveResponse> forgotPassword(@RequestParam String email){
+        return new DateResponse<>(HttpStatus.OK.value(),"forgot password",authenticationService.forgotPassword(email));
+    }
+
+    @PostMapping("/reset-password")
+    public DateResponse<ActiveResponse> resetPassword (@RequestParam String email, @RequestBody ResetPasswordRequest request){
+        return new DateResponse<>(HttpStatus.OK.value(),"reset password",authenticationService.resetPassword(email,request));
+    }
+
 }

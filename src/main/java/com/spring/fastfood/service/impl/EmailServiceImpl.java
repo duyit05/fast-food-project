@@ -16,10 +16,10 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class EmailServiceImpl implements EmailService {
 
-    private final JavaMailSender javaMailSender;
-
     @Value("${spring.mail.username}")
     private String FROM;
+    private final JavaMailSender javaMailSender;
+
 
     @Override
     public void sendEmailActive(String email, String activeCode) {
@@ -28,7 +28,7 @@ public class EmailServiceImpl implements EmailService {
             String url = "http://localhost:8080/auth/active?email=" + email + "&activeCode=" + activeCode;
             String text = "Vui lòng sử dụng mã sau để kích hoạt tài khoản: " + email
                     + "\nHoặc có thể sao chép đường dẫn này vào trình duyệt: " + url;
-            sendMail(email, subject, text);
+            sendMail(FROM,email, subject, text);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("Error sending mail: " + e.getMessage());
@@ -36,11 +36,30 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
-    public void sendMail(String to, String subject, String text) {
+    public void sendMailForgotPassword(String email) {
         MimeMessage message = javaMailSender.createMimeMessage();
         try {
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
-            helper.setFrom(FROM);
+            helper.setTo(email);
+            helper.setSubject("Reset password");
+            helper.setText("""
+                    <div>
+                      <a href="http://localhost:8080/forgot-password?email=%s" target="_blank">click link to verify</a>
+                    </div>
+                    """.formatted(email), true);
+            javaMailSender.send(message);
+        }catch (Exception e){
+            log.error("errorMessage : {}", e.getMessage());
+            throw new RuntimeException("Send mail forgot password fail!");
+        }
+    }
+
+    @Override
+    public void sendMail(String from, String to, String subject, String text) {
+        MimeMessage message = javaMailSender.createMimeMessage();
+        try {
+            MimeMessageHelper helper = new MimeMessageHelper(message, true);
+            helper.setFrom(from);
             helper.setTo(to);
             helper.setSubject(subject);
             helper.setText(text);
@@ -51,3 +70,5 @@ public class EmailServiceImpl implements EmailService {
         javaMailSender.send(message);
     }
 }
+
+

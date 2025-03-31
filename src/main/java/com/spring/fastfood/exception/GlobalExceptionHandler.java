@@ -38,12 +38,15 @@ public class GlobalExceptionHandler {
         String message = exception.getMessage();
         String errorType = "Validation Error";
 
+        // @Valid hoặc @Validated
         if (exception instanceof MethodArgumentNotValidException) {
             message = extractMessageBetweenBrackets(message);
             errorType = "Payload Invalid";
+        // @NotNull, @Size, v.v.
         } else if (exception instanceof ConstraintViolationException) {
             message = message.substring(message.indexOf(" ") + 1);
             errorType = "Parameter Invalid";
+        // Lỗi khi không thể đọc hoặc parse request body.
         } else if (exception instanceof HttpMessageNotReadableException) {
             message = extractMessageBetweenBrackets(message);
             errorType = "Enum Invalid";
@@ -128,6 +131,35 @@ public class GlobalExceptionHandler {
         errorResponse.setStatus(FORBIDDEN.value());
         errorResponse.setError(FORBIDDEN.getReasonPhrase());
         errorResponse.setMessage(e.getMessage());
+        return errorResponse;
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "400", description = "Bad request",
+                    content = {@Content(mediaType = APPLICATION_JSON_VALUE,
+                            examples = @ExampleObject(
+                                    name = "400 Response",
+                                    summary = "Handle exception when bad request",
+                                    value = """
+                                            {
+                                              "timestamp": "2023-10-19T06:07:35.321+00:00",
+                                              "status": 400,
+                                              "path": "/api/v1/...",
+                                              "error": "Bad request",
+                                              "message": "Bad request"
+                                            }
+                                            """
+                            ))})
+    })
+    public ErrorResponse handleResourceNotFoundException(IllegalArgumentException e, WebRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse.setTimestamp(new Date());
+        errorResponse.setPath(request.getDescription(false).replace("uri=", ""));
+        errorResponse.setStatus(BAD_REQUEST.value());
+        errorResponse.setError(BAD_REQUEST.getReasonPhrase());
+        errorResponse.setMessage(e.getMessage());
+
         return errorResponse;
     }
 }

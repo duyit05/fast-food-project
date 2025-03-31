@@ -1,28 +1,29 @@
 package com.spring.fastfood.service.impl;
 
+import com.spring.fastfood.dto.request.ResetPasswordRequest;
 import com.spring.fastfood.dto.request.SigInRequest;
-import com.spring.fastfood.dto.response.ResponseActive;
+import com.spring.fastfood.dto.response.ActiveResponse;
 import com.spring.fastfood.dto.response.TokenResponse;
 import com.spring.fastfood.enums.TokenType;
 import com.spring.fastfood.enums.UserStatus;
-import com.spring.fastfood.exception.ResourceNotFoundException;
 import com.spring.fastfood.model.Token;
 import com.spring.fastfood.model.User;
 import com.spring.fastfood.repository.UserRepository;
 import com.spring.fastfood.service.AuthenticationService;
+import com.spring.fastfood.service.EmailService;
 import com.spring.fastfood.service.JwtService;
 import com.spring.fastfood.service.TokenService;
 import io.micrometer.common.util.StringUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -37,6 +38,8 @@ public class AuthenticationImpl implements AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final TokenService tokenService;
+    private final EmailService emailService;
+    private final PasswordEncoder passwordEncoder;
 
 
     @Override
@@ -46,16 +49,16 @@ public class AuthenticationImpl implements AuthenticationService {
             User user = userRepository.findByUsername(request.getUsername())
                     .orElseThrow(() -> new BadCredentialsException("user name or password incorrect"));
 
-            if(user.getStatus().equals(UserStatus.INACTIVE)){
+            if (user.getStatus().equals(UserStatus.INACTIVE)) {
                 throw new BadCredentialsException("user has been not active");
             }
-            Authentication authentication =  authenticationManager.authenticate(new UsernamePasswordAuthenticationToken
+            Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken
                     (request.getUsername(), request.getPassword()));
-            log.info("isAuthenticated : {}" , authentication.isAuthenticated());
-            log.info("Authorities : {}" , authentication.getAuthorities().toString());
+            log.info("isAuthenticated : {}", authentication.isAuthenticated());
+            log.info("Authorities : {}", authentication.getAuthorities().toString());
             authentication.getAuthorities().forEach(auth -> authorities.add(auth.getAuthority()));
-            String accessToken = jwtService.generateToken(user,authorities);
-            String refreshToken = jwtService.refreshToken(user,authorities);
+            String accessToken = jwtService.generateToken(user, authorities);
+            String refreshToken = jwtService.refreshToken(user, authorities);
             // lưu token vào db
             tokenService.saveToken(Token.builder()
                     .accessToken(accessToken)
@@ -67,7 +70,7 @@ public class AuthenticationImpl implements AuthenticationService {
                     .refreshToken(refreshToken)
                     .userId(user.getId())
                     .build();
-        }catch (BadCredentialsException | DisabledException e){
+        } catch (BadCredentialsException | DisabledException e) {
             log.error("errorMessage: {}", e.getMessage());
             throw new BadCredentialsException(e.getMessage());
         }
@@ -91,7 +94,7 @@ public class AuthenticationImpl implements AuthenticationService {
         }
         List<String> authorities = new ArrayList<>();
         user.getAuthorities().forEach(authority -> authorities.add(authority.getAuthority()));
-        String accessToken = jwtService.generateToken(user,authorities);
+        String accessToken = jwtService.generateToken(user, authorities);
         return TokenResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
@@ -107,7 +110,7 @@ public class AuthenticationImpl implements AuthenticationService {
             throw new InterruptedException("Token must be not blank");
         }
         // extract token from username
-        final String username = jwtService.extractUsername(token,TokenType.ACCESS_TOKEN);
+        final String username = jwtService.extractUsername(token, TokenType.ACCESS_TOKEN);
         //check token in db
         Token currentToken = tokenService.getByUsername(username);
         // delete token
@@ -115,21 +118,47 @@ public class AuthenticationImpl implements AuthenticationService {
         return "logout success";
     }
 
-    @Override
-    public ResponseActive sendMailActive(String email, String activeCode){
-        User user = userRepository.findByEmail(email)
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email)
                 .orElseThrow(() -> new BadCredentialsException("email not exist"));
+    }
 
-        if(user.getStatus().equals(UserStatus.ACTIVE)){
-            throw new BadCredentialsException ("user has been active");
+    @Override
+    public ActiveResponse sendMailActive(String email, String activeCode) {
+        User user = findByEmail(email);
+        if (user.getStatus().equals(UserStatus.ACTIVE)) {
+            throw new BadCredentialsException("user has been active");
         }
 
-        if(activeCode.equals(user.getActiveCode())){
+        if (activeCode.equals(user.getActiveCode())) {
             user.setStatus(UserStatus.ACTIVE);
         }
         userRepository.save(user);
-        return ResponseActive.builder()
-                .message("active user succesfully")
+        return ActiveResponse.builder()
+                .message("active user successfully")
+                .email(user.getEmail())
+                .build();
+    }
+
+    @Override
+    public ActiveResponse forgotPassword(String email) {
+        User user = findByEmail(email);
+        emailService.sendMailForgotPassword(email);
+        return ActiveResponse.builder()
+                .message("send mail forgot password successfully")
+                .email(user.getEmail())
+                .build();
+    }
+
+    @Override
+    public ActiveResponse resetPassword(String email, ResetPasswordRequest request) {
+        User user = findByEmail(email);
+        if (!request.getNewPassword().equals(request.getNewPasswordRepeat()))
+            throw new IllegalArgumentException("password must be match");
+        user.setPassword(passwordEncoder.encode(request.getNewPasswordRepeat()));
+        userRepository.save(user);
+        return ActiveResponse.builder()
+                .message("reset password successfully")
                 .email(user.getEmail())
                 .build();
     }

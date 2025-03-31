@@ -2,8 +2,8 @@ package com.spring.fastfood.dto.response;
 
 import org.springframework.http.HttpStatusCode;
 
-public class ResponseFailure extends ResponseSuccess {
-    public ResponseFailure(HttpStatusCode status, String message) {
+public class FailureResponse extends SuccessResponse {
+    public FailureResponse(HttpStatusCode status, String message) {
         super(status, message);
     }
 }

@@ -12,9 +12,4 @@ import org.springframework.web.bind.annotation.RestController;
 public class EmailController {
     private final EmailService emailService;
 
-    @GetMapping("/")
-    public String sendMail (){
-        emailService.sendMail("duynv.it.052@gmail.com","Hello Duy", "Hello Duy");
-        return "Success fully";
-    }
 }
