@@ -1,6 +1,5 @@
 package com.spring.fastfood.dto.request;
 
-
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.spring.fastfood.enums.GenderType;
 import com.spring.fastfood.enums.UserStatus;
@@ -17,13 +16,7 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class UserRequest {
-    @NotBlank(message = "username must not be blank")
-    @Size(min = 5 , message = "username must has 5 characters")
-    private String username;
-
-    @NotBlank(message = "password must not be blank")
-    private String password;
+public class UserUpdateRequest {
 
     @NotNull(message = "first name must not be null")
     private String firstName;
@@ -31,17 +24,11 @@ public class UserRequest {
     @NotNull(message = "full name must not be null")
     private String lastName;
 
-    @Email(message = "email invalid")
-    private String email;
-
     @Pattern(regexp = "^\\d{10}$" , message = "phone invalid format")
     private String phoneNumber;
 
     @GenderSubset(anyOf = {GenderType.MALE, GenderType.FEMALE, GenderType.OTHER})
     private GenderType gender;
-
-    @UserStatusSubset(anyOf = {UserStatus.ACTIVE, UserStatus.INACTIVE, UserStatus.BLOCK})
-    private UserStatus status;
 
     @NotNull(message = "date of birth must not be null")
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)

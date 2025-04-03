@@ -1,20 +1,26 @@
 package com.spring.fastfood.service;
 
 import com.spring.fastfood.dto.request.UserRequest;
+import com.spring.fastfood.dto.request.UserUpdateRequest;
 import com.spring.fastfood.dto.response.PageResponse;
 import com.spring.fastfood.dto.response.UserResponse;
 import com.spring.fastfood.enums.UserStatus;
+import com.spring.fastfood.model.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
 import java.util.List;
 
 public interface UserService {
-    UserResponse saveUser (UserRequest request);
+
     UserResponse updateUser (long userId , UserRequest request);
     void changeStatus (long userId, UserStatus status);
     void deleteUser (long userId);
     UserResponse getUserDetail (long userId);
     PageResponse<?> getAllUser (int pageNo , int pageSize, String sortBy,String keyword);
 
-    UserDetailsService userDetailsService ();
+    UserResponse updateProfile(UserUpdateRequest request);
+
+     User getUserById(long userId);
+     UserResponse viewMyInfo ();
+     User findByUsername (String username);
 }

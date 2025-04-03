@@ -2,19 +2,19 @@ package com.spring.fastfood.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
-public class DateResponse<T> {
+public class DataResponse<T> {
     private final int status;
     private final String message;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private T data;
 
-    public DateResponse(int status, String message, T data) {
+    public DataResponse(int status, String message, T data) {
         this.status = status;
         this.message = message;
         this.data = data;
     }
 
-    public DateResponse(int status, String message) {
+    public DataResponse(int status, String message) {
         this.status = status;
         this.message = message;
     }

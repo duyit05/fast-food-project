@@ -2,12 +2,19 @@ package com.spring.fastfood.service.impl;
 
 import com.spring.fastfood.dto.request.ResetPasswordRequest;
 import com.spring.fastfood.dto.request.SigInRequest;
+import com.spring.fastfood.dto.request.UserRequest;
 import com.spring.fastfood.dto.response.ActiveResponse;
 import com.spring.fastfood.dto.response.TokenResponse;
+import com.spring.fastfood.dto.response.UserResponse;
 import com.spring.fastfood.enums.TokenType;
 import com.spring.fastfood.enums.UserStatus;
+import com.spring.fastfood.exception.ResourceNotFoundException;
+import com.spring.fastfood.mapper.UserMapper;
+import com.spring.fastfood.model.Role;
 import com.spring.fastfood.model.Token;
 import com.spring.fastfood.model.User;
+import com.spring.fastfood.model.UserHasRole;
+import com.spring.fastfood.repository.RoleRepository;
 import com.spring.fastfood.repository.UserRepository;
 import com.spring.fastfood.service.AuthenticationService;
 import com.spring.fastfood.service.EmailService;
@@ -27,7 +34,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
@@ -40,6 +49,33 @@ public class AuthenticationImpl implements AuthenticationService {
     private final TokenService tokenService;
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
+    private final UserMapper userMapper;
+    private final RoleRepository roleRepository;
+
+    @Override
+    public UserResponse signUp(UserRequest request) {
+        if(userRepository.existsByUsername(request.getUsername()))
+            throw new IllegalArgumentException("username has ben existed");
+
+        User user = userMapper.toUser(request);
+        user.setStatus(UserStatus.INACTIVE);
+        user.setActiveCode(randomCode());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+
+        Role role = roleRepository.findByRoleName("USER").orElseThrow(
+                () ->new ResourceNotFoundException("can't find role USER"));
+
+        UserHasRole userHasRole = new UserHasRole(user,role);
+        user.setRoles(Collections.singletonList(userHasRole));
+
+        return userMapper.toUserResponse(userRepository.save(user));
+    }
+
+    public String randomCode() {
+        Random random = new Random();
+        int code = random.nextInt(900000) + 100000;
+        return String.valueOf(code);
+    }
 
 
     @Override
@@ -47,11 +83,14 @@ public class AuthenticationImpl implements AuthenticationService {
         List<String> authorities = new ArrayList<>();
         try {
             User user = userRepository.findByUsername(request.getUsername())
-                    .orElseThrow(() -> new BadCredentialsException("user name or password incorrect"));
+                    .orElseThrow(() -> new BadCredentialsException("username or password incorrect"));
 
-            if (user.getStatus().equals(UserStatus.INACTIVE)) {
+            if (user.getStatus().equals(UserStatus.INACTIVE))
                 throw new BadCredentialsException("user has been not active");
-            }
+
+            if (!passwordEncoder.matches(request.getPassword(), user.getPassword()))
+                throw new BadCredentialsException("username or password incorrect");
+
             Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken
                     (request.getUsername(), request.getPassword()));
             log.info("isAuthenticated : {}", authentication.isAuthenticated());
@@ -86,8 +125,7 @@ public class AuthenticationImpl implements AuthenticationService {
         // extract user from token
         final String username = jwtService.extractUsername(refreshToken, TokenType.REFRESH_TOKEN);
         // check it into db
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("user name invalid"));
+        User user = findByUsername(username);
         // validate token valid
         if (!jwtService.isValidToken(refreshToken, TokenType.REFRESH_TOKEN, user)) {
             throw new InterruptedException("Token invalid");
@@ -118,6 +156,8 @@ public class AuthenticationImpl implements AuthenticationService {
         return "logout success";
     }
 
+
+    @Override
     public User findByEmail(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new BadCredentialsException("email not exist"));
@@ -161,5 +201,11 @@ public class AuthenticationImpl implements AuthenticationService {
                 .message("reset password successfully")
                 .email(user.getEmail())
                 .build();
+    }
+
+    @Override
+    public User findByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new BadCredentialsException("email not exist"));
     }
 }

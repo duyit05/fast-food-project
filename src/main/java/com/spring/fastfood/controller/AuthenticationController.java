@@ -2,9 +2,11 @@ package com.spring.fastfood.controller;
 
 import com.spring.fastfood.dto.request.ResetPasswordRequest;
 import com.spring.fastfood.dto.request.SigInRequest;
+import com.spring.fastfood.dto.request.UserRequest;
 import com.spring.fastfood.dto.response.ActiveResponse;
-import com.spring.fastfood.dto.response.DateResponse;
+import com.spring.fastfood.dto.response.DataResponse;
 import com.spring.fastfood.dto.response.TokenResponse;
+import com.spring.fastfood.dto.response.UserResponse;
 import com.spring.fastfood.service.AuthenticationService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +24,10 @@ import org.springframework.web.bind.annotation.*;
 public class AuthenticationController {
     private final AuthenticationService authenticationService;
 
+    @PostMapping("/sign-up")
+    public DataResponse<UserResponse> signUp (@RequestBody UserRequest request){
+        return new DataResponse<>(HttpStatus.CREATED.value(), "sign up",authenticationService.signUp(request));
+    }
     @PostMapping("/login")
     public ResponseEntity<TokenResponse> login(@RequestBody SigInRequest request) {
             return new ResponseEntity<>(authenticationService.authenticated(request), HttpStatus.OK);
@@ -41,18 +47,18 @@ public class AuthenticationController {
     }
 
     @GetMapping("/active")
-    public DateResponse<ActiveResponse> sendMailActive(@RequestParam String email , @RequestParam String activeCode){
-            return new DateResponse<>(HttpStatus.OK.value(),"active",authenticationService.sendMailActive(email,activeCode));
+    public DataResponse<ActiveResponse> sendMailActive(@RequestParam String email , @RequestParam String activeCode){
+            return new DataResponse<>(HttpStatus.OK.value(),"active",authenticationService.sendMailActive(email,activeCode));
     }
 
     @GetMapping("/forgot-password")
-    public DateResponse<ActiveResponse> forgotPassword(@RequestParam String email){
-        return new DateResponse<>(HttpStatus.OK.value(),"forgot password",authenticationService.forgotPassword(email));
+    public DataResponse<ActiveResponse> forgotPassword(@RequestParam String email){
+        return new DataResponse<>(HttpStatus.OK.value(),"forgot password",authenticationService.forgotPassword(email));
     }
 
     @PostMapping("/reset-password")
-    public DateResponse<ActiveResponse> resetPassword (@RequestParam String email, @RequestBody ResetPasswordRequest request){
-        return new DateResponse<>(HttpStatus.OK.value(),"reset password",authenticationService.resetPassword(email,request));
+    public DataResponse<ActiveResponse> resetPassword (@RequestParam String email, @RequestBody ResetPasswordRequest request){
+        return new DataResponse<>(HttpStatus.OK.value(),"reset password",authenticationService.resetPassword(email,request));
     }
 
 }
