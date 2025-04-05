@@ -2,15 +2,17 @@ package com.spring.fastfood.service;
 
 import com.spring.fastfood.dto.request.FoodRequest;
 import com.spring.fastfood.dto.response.FoodResponse;
+import com.spring.fastfood.dto.response.PageResponse;
 import com.spring.fastfood.model.Food;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
 public interface FoodService {
 
-    List<FoodResponse> getAllFood();
+    PageResponse<?> getAllFood(int pageNo, int pageSize, String sortBy, String keyword);
     FoodResponse createFood (FoodRequest request);
-    FoodResponse updateFood (Integer foodId, FoodRequest request);
-    void deleteFood (Integer foodId);
+    FoodResponse updateFood (long foodId, FoodRequest request);
+    void deleteFood (long foodId);
 
 }

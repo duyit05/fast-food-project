@@ -21,9 +21,6 @@ public class Food extends AbstractEntity <Long>{
     @Column(name = "brand")
     private String brand;
 
-    @Column(name = "average_rating")
-    private Double averageRating;
-
     @Column(name = "food_name")
     private String foodName;
 

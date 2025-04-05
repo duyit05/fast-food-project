@@ -8,7 +8,6 @@ import com.spring.fastfood.enums.UserStatus;
 import com.spring.fastfood.exception.ResourceNotFoundException;
 import com.spring.fastfood.mapper.UserMapper;
 import com.spring.fastfood.model.User;
-import com.spring.fastfood.repository.RoleRepository;
 import com.spring.fastfood.repository.UserRepository;
 import com.spring.fastfood.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +18,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 

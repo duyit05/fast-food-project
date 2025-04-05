@@ -6,9 +6,12 @@ import com.spring.fastfood.model.Food;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
 
+import java.util.List;
+
 @Mapper(componentModel = "spring")
 public interface FoodMapper {
     Food toFood (FoodRequest request);
     FoodResponse toFoodResponse (Food food);
     void updateFood (@MappingTarget Food food, FoodRequest request);
+    List<FoodResponse> toFoodResponseList (List<Food> food);
 }
