@@ -31,7 +31,7 @@ public class AppConfig {
 
     private final CustomUserDetailService userDetailService;
     private final PreFilter preFilter;
-    private final String[] WHITE_LIST = {"/auth/**" , "/food/list-food"};
+    private final String[] WHITE_LIST = {"/auth/**" , "/food/list-food","category/list"};
 
     @Bean
     public WebMvcConfigurer mvcConfigurer() {
