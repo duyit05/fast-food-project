@@ -44,4 +44,10 @@ public class CategoryController {
     public DataResponse<PageResponse<?>> getAllCategory (@RequestParam int pageNo, @RequestParam int pageSize){
         return new DataResponse<>(HttpStatus.OK.value(), "categories",categoryService.getAllCategory(pageNo, pageSize));
     }
+
+    @GetMapping("/{categoryId}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public DataResponse<CategoryResponse> getDetail (@PathVariable long categoryId){
+        return new DataResponse<>(HttpStatus.OK.value(),"detail category",categoryService.getDetail(categoryId));
+    }
 }

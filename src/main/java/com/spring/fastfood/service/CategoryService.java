@@ -9,5 +9,5 @@ public interface CategoryService {
     CategoryResponse createCategory (CategoryRequest request);
     CategoryResponse updateCategory (long categoryId, CategoryRequest request);
     void deleteCategory (long categoryId);
-
+    CategoryResponse getDetail (long categoryId);
 }

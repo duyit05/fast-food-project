@@ -65,7 +65,8 @@ public class FoodServiceImpl implements FoodService {
                 .build();
     }
 
-    private double calculateRating(List<Review> reviews) {
+    @Override
+    public double calculateRating(List<Review> reviews) {
         double rating = 0;
         for (Review review : reviews) {
             rating += review.getRank();
@@ -96,5 +97,11 @@ public class FoodServiceImpl implements FoodService {
 
     public Food getFoodById (Long foodId){
         return foodRepository.findById(foodId).orElseThrow(() -> new ResourceNotFoundException("can't find food id: " + foodId));
+    }
+
+    @Override
+    public FoodResponse getDetailFood(long foodId) {
+        Food food = getFoodById(foodId);
+        return foodMapper.toFoodResponse(food);
     }
 }

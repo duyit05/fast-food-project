@@ -54,4 +54,9 @@ public class FoodController {
             return new DataResponseError(HttpStatus.BAD_REQUEST.value(), "Food not found id: " + foodId);
         }
     }
+
+    @GetMapping("/{foodId}")
+    public DataResponse<FoodResponse> getFoodById (@PathVariable long foodId){
+        return new DataResponse<>(HttpStatus.ACCEPTED.value(), "get detail food",foodService.getDetailFood(foodId));
+    }
 }
