@@ -1,12 +1,17 @@
 package com.spring.fastfood.service.impl;
 
 import com.spring.fastfood.dto.request.FoodRequest;
+import com.spring.fastfood.dto.response.FoodCategoryResponse;
 import com.spring.fastfood.dto.response.FoodResponse;
 import com.spring.fastfood.dto.response.PageResponse;
 import com.spring.fastfood.exception.ResourceNotFoundException;
 import com.spring.fastfood.mapper.FoodMapper;
+import com.spring.fastfood.model.Category;
 import com.spring.fastfood.model.Food;
+import com.spring.fastfood.model.FoodCategory;
 import com.spring.fastfood.model.Review;
+import com.spring.fastfood.repository.CategoryRepository;
+import com.spring.fastfood.repository.FoodCategoryRepository;
 import com.spring.fastfood.repository.FoodRepository;
 import com.spring.fastfood.service.FoodService;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +35,8 @@ import java.util.stream.Collectors;
 public class FoodServiceImpl implements FoodService {
     private final FoodRepository foodRepository;
     private final FoodMapper foodMapper;
+    private final CategoryRepository categoryRepository;
+    private final FoodCategoryRepository foodCategoryRepository;
 
     @Override
     public PageResponse<?> getAllFood(int pageNo, int pageSize, String sortBy, String keyword) {
@@ -48,8 +55,8 @@ public class FoodServiceImpl implements FoodService {
         }
         Pageable pageable = PageRequest.of(page, pageSize, Sort.by(sorts));
         // Chuyển String thành list<String>
-        Page<Food> foods = StringUtils.hasLength(keyword) ? foodRepository.searchByKeyWord(keyword,pageable)
-                                                          : foodRepository.findAll(pageable);
+        Page<Food> foods = StringUtils.hasLength(keyword) ? foodRepository.searchByKeyWord(keyword, pageable)
+                : foodRepository.findAll(pageable);
         List<FoodResponse> responses = foods.getContent().stream().map(
                 food -> {
                     FoodResponse foodResponse = foodMapper.toFoodResponse(food);
@@ -79,14 +86,29 @@ public class FoodServiceImpl implements FoodService {
     @Override
     public FoodResponse createFood(FoodRequest request) {
         Food food = foodMapper.toFood(request);
-        return foodMapper.toFoodResponse(foodRepository.save(food));
+        Food foodSaved = foodRepository.save(food);
+
+        List<FoodCategory> foodCategories = new ArrayList<>();
+        for (Long categoryId : request.getCategoryId()) {
+            Category category = categoryRepository.findById(categoryId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + categoryId));
+
+            FoodCategory foodCategory = FoodCategory.builder()
+                    .food(food)
+                    .category(category)
+                    .build();
+            foodCategories.add(foodCategory);
+        }
+        foodCategoryRepository.saveAll(foodCategories);
+        foodSaved.setFoodCategories(foodCategories);
+        return foodMapper.toFoodResponse(foodSaved);
     }
 
 
     @Override
     public FoodResponse updateFood(long foodId, FoodRequest request) {
         Food food = getFoodById(foodId);
-        foodMapper.updateFood(food,request);
+        foodMapper.updateFood(food, request);
         return foodMapper.toFoodResponse(foodRepository.save(food));
     }
 
@@ -95,7 +117,7 @@ public class FoodServiceImpl implements FoodService {
         foodRepository.deleteById(foodId);
     }
 
-    public Food getFoodById (Long foodId){
+    public Food getFoodById(Long foodId) {
         return foodRepository.findById(foodId).orElseThrow(() -> new ResourceNotFoundException("can't find food id: " + foodId));
     }
 

@@ -8,6 +8,8 @@ import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.util.List;
+
 @Getter
 @Builder
 public class FoodRequest {
@@ -22,4 +24,5 @@ public class FoodRequest {
     private Double lastedPrice;
     @Min(value = 10, message = "price must be greater than 10")
     private Double price;
+    private List<Long> categoryId;
 }
