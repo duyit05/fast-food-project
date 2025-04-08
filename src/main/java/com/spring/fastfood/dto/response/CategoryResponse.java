@@ -1,5 +1,6 @@
 package com.spring.fastfood.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 
 import java.util.List;
@@ -9,8 +10,9 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class CategoryResponse {
-    private int id;
+    private long id;
     private String categoryName;
     private List<FoodResponse> foods;
 }

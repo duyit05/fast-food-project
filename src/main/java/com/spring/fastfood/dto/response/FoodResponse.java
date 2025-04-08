@@ -4,6 +4,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Builder
 @Setter
@@ -16,4 +18,5 @@ public class FoodResponse {
     private String description;
     private Double lastedPrice;
     private Double price;
+    private List<CategoryResponse> categories;
 }
