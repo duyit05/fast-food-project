@@ -5,6 +5,7 @@ import com.spring.fastfood.dto.request.UserUpdateRequest;
 import com.spring.fastfood.dto.response.DataResponse;
 import com.spring.fastfood.dto.response.DataResponseError;
 import com.spring.fastfood.dto.response.UserResponse;
+import com.spring.fastfood.dto.response.WishListResponse;
 import com.spring.fastfood.enums.UserStatus;
 import com.spring.fastfood.exception.ResourceNotFoundException;
 import com.spring.fastfood.service.UserService;
@@ -19,6 +20,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RequestMapping("/user")
 @RestController
@@ -98,11 +101,16 @@ public class UserController {
 
         log.info("User từ SecurityContext: {}", authentication.getName());
         return new DataResponse<>(HttpStatus.OK.value(), "view info", userService.viewMyInfo());
-
     }
 
     @PatchMapping("/update-profile")
     public DataResponse<UserResponse> updateProfile (@RequestBody UserUpdateRequest request){
         return new DataResponse<>(HttpStatus.OK.value(), "update info", userService.updateProfile(request));
     }
+
+    @GetMapping("/view-my-wish-list")
+    public DataResponse<List<WishListResponse>> viewMyWishList (){
+        return new DataResponse<>(HttpStatus.OK.value(), "view my wish list",userService.viewMyWishList());
+    }
+
 }

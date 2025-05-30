@@ -19,4 +19,6 @@ public interface FoodService {
     FoodResponse getDetailFood (long foodId);
      double calculateRating(List<Review> reviews);
 
+    Food getFoodById(Long foodId);
+
 }

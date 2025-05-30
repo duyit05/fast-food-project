@@ -4,11 +4,15 @@ import com.spring.fastfood.dto.request.UserRequest;
 import com.spring.fastfood.dto.request.UserUpdateRequest;
 import com.spring.fastfood.dto.response.PageResponse;
 import com.spring.fastfood.dto.response.UserResponse;
+import com.spring.fastfood.dto.response.WishListResponse;
 import com.spring.fastfood.enums.UserStatus;
 import com.spring.fastfood.exception.ResourceNotFoundException;
+import com.spring.fastfood.mapper.FoodMapper;
 import com.spring.fastfood.mapper.UserMapper;
 import com.spring.fastfood.model.User;
+import com.spring.fastfood.model.WishList;
 import com.spring.fastfood.repository.UserRepository;
+import com.spring.fastfood.repository.WishListRepository;
 import com.spring.fastfood.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +30,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -34,6 +39,8 @@ import java.util.regex.Pattern;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final WishListRepository wishListRepository;
+    private final FoodMapper foodMapper;
 
 
     @Override
@@ -132,5 +139,19 @@ public class UserServiceImpl implements UserService {
     public User findByUsername(String username) {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new BadCredentialsException("username not exist"));
+    }
+
+    @Override
+    public List<WishListResponse> viewMyWishList() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = findByUsername(username);
+        List<WishList> wishLists = wishListRepository.findByUser(user);
+
+        return wishLists.stream().map(
+             wishList -> WishListResponse.builder()
+                     .wishListId(wishList.getId())
+                     .food(foodMapper.toFoodResponse(wishList.getFood()))
+                     .build()
+        ).collect(Collectors.toList());
     }
 }

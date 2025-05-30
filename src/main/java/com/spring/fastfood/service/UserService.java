@@ -4,9 +4,9 @@ import com.spring.fastfood.dto.request.UserRequest;
 import com.spring.fastfood.dto.request.UserUpdateRequest;
 import com.spring.fastfood.dto.response.PageResponse;
 import com.spring.fastfood.dto.response.UserResponse;
+import com.spring.fastfood.dto.response.WishListResponse;
 import com.spring.fastfood.enums.UserStatus;
 import com.spring.fastfood.model.User;
-import org.springframework.security.core.userdetails.UserDetailsService;
 
 import java.util.List;
 
@@ -23,4 +23,5 @@ public interface UserService {
      User getUserById(long userId);
      UserResponse viewMyInfo ();
      User findByUsername (String username);
+    List<WishListResponse> viewMyWishList ();
 }

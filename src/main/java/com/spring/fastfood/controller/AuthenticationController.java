@@ -8,6 +8,8 @@ import com.spring.fastfood.dto.response.DataResponse;
 import com.spring.fastfood.dto.response.TokenResponse;
 import com.spring.fastfood.dto.response.UserResponse;
 import com.spring.fastfood.service.AuthenticationService;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +17,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 @RequestMapping("/auth")
 @RestController
@@ -25,18 +31,17 @@ public class AuthenticationController {
     private final AuthenticationService authenticationService;
 
     @PostMapping("/sign-up")
-    public DataResponse<UserResponse> signUp (@RequestBody UserRequest request){
-        return new DataResponse<>(HttpStatus.CREATED.value(), "sign up",authenticationService.signUp(request));
+    public DataResponse<UserResponse> signUp(@RequestBody UserRequest request) {
+        return new DataResponse<>(HttpStatus.CREATED.value(), "sign up", authenticationService.signUp(request));
     }
+
     @PostMapping("/login")
     public ResponseEntity<TokenResponse> login(@RequestBody SigInRequest request) {
-            return new ResponseEntity<>(authenticationService.authenticated(request), HttpStatus.OK);
-
-
+        return new ResponseEntity<>(authenticationService.authenticated(request), HttpStatus.OK);
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<TokenResponse> refreshToken (HttpServletRequest request) throws InterruptedException {
+    public ResponseEntity<TokenResponse> refreshToken(HttpServletRequest request) throws InterruptedException {
         return new ResponseEntity<>(authenticationService.refreshToken(request), HttpStatus.OK);
 
     }
@@ -47,18 +52,18 @@ public class AuthenticationController {
     }
 
     @GetMapping("/active")
-    public DataResponse<ActiveResponse> sendMailActive(@RequestParam String email , @RequestParam String activeCode){
-            return new DataResponse<>(HttpStatus.OK.value(),"active",authenticationService.sendMailActive(email,activeCode));
+    public DataResponse<ActiveResponse> sendMailActive(@RequestParam String email, @RequestParam String activeCode) {
+        return new DataResponse<>(HttpStatus.OK.value(), "active", authenticationService.sendMailActive(email, activeCode));
     }
 
     @GetMapping("/forgot-password")
-    public DataResponse<ActiveResponse> forgotPassword(@RequestParam String email){
-        return new DataResponse<>(HttpStatus.OK.value(),"forgot password",authenticationService.forgotPassword(email));
+    public DataResponse<ActiveResponse> forgotPassword(@RequestParam String email) {
+        return new DataResponse<>(HttpStatus.OK.value(), "forgot password", authenticationService.forgotPassword(email));
     }
 
     @PostMapping("/reset-password")
-    public DataResponse<ActiveResponse> resetPassword (@RequestParam String email, @RequestBody ResetPasswordRequest request){
-        return new DataResponse<>(HttpStatus.OK.value(),"reset password",authenticationService.resetPassword(email,request));
+    public DataResponse<ActiveResponse> resetPassword(@RequestParam String email, @RequestBody ResetPasswordRequest request) {
+        return new DataResponse<>(HttpStatus.OK.value(), "reset password", authenticationService.resetPassword(email, request));
     }
 
 }

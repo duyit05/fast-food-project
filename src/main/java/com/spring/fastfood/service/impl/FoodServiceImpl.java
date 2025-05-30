@@ -2,7 +2,6 @@ package com.spring.fastfood.service.impl;
 
 import com.spring.fastfood.dto.request.FoodRequest;
 import com.spring.fastfood.dto.response.CategoryResponse;
-import com.spring.fastfood.dto.response.FoodCategoryResponse;
 import com.spring.fastfood.dto.response.FoodResponse;
 import com.spring.fastfood.dto.response.PageResponse;
 import com.spring.fastfood.exception.ResourceNotFoundException;
@@ -15,6 +14,7 @@ import com.spring.fastfood.repository.CategoryRepository;
 import com.spring.fastfood.repository.FoodCategoryRepository;
 import com.spring.fastfood.repository.FoodRepository;
 import com.spring.fastfood.service.FoodService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -117,10 +117,36 @@ public class FoodServiceImpl implements FoodService {
 
 
     @Override
+    @Transactional
     public FoodResponse updateFood(long foodId, FoodRequest request) {
-        Food food = getFoodById(foodId);
-        foodMapper.updateFood(food, request);
-        return foodMapper.toFoodResponse(foodRepository.save(food));
+        Food food = getFoodById(foodId); // đã tồn tại trong DB
+
+        // Cập nhật các thuộc tính food
+        foodMapper.updateFood(food, request); // cập nhật name, price, brand, ...
+
+        // Xoá hết liên kết cũ (do đã khai báo orphanRemoval = true)
+        food.getFoodCategories().clear();
+
+        // Tạo danh sách mới
+        List<FoodCategory> updatedFoodCategories = new ArrayList<>();
+        for (Long categoryId : request.getCategoryId()) {
+            Category category = categoryRepository.findById(categoryId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + categoryId));
+
+            FoodCategory foodCategory = FoodCategory.builder()
+                    .food(food)
+                    .category(category)
+                    .build();
+            updatedFoodCategories.add(foodCategory);
+        }
+
+        // Gán list mới vào food (list cũ đã clear ở trên)
+        food.getFoodCategories().addAll(updatedFoodCategories);
+
+        // Lưu lại toàn bộ (food sẽ cascade save FoodCategory nếu cần)
+        Food updatedFood = foodRepository.save(food);
+
+        return foodMapper.toFoodResponse(updatedFood);
     }
 
     @Override
@@ -128,6 +154,7 @@ public class FoodServiceImpl implements FoodService {
         foodRepository.deleteById(foodId);
     }
 
+    @Override
     public Food getFoodById(Long foodId) {
         return foodRepository.findById(foodId).orElseThrow(() -> new ResourceNotFoundException("can't find food id: " + foodId));
     }
