@@ -148,10 +148,20 @@ public class UserServiceImpl implements UserService {
         List<WishList> wishLists = wishListRepository.findByUser(user);
 
         return wishLists.stream().map(
-             wishList -> WishListResponse.builder()
-                     .wishListId(wishList.getId())
-                     .food(foodMapper.toFoodResponse(wishList.getFood()))
-                     .build()
+                wishList -> WishListResponse.builder()
+                        .wishListId(wishList.getId())
+                        .food(foodMapper.toFoodResponse(wishList.getFood()))
+                        .build()
         ).collect(Collectors.toList());
+    }
+
+    @Override
+    public void deleteWishListByUser(long wishListId) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = findByUsername(username);
+        WishList wishList = wishListRepository.findByIdAndUser(wishListId, user)
+                .orElseThrow(() -> new ResourceNotFoundException("wishlist not found or access denied"));
+
+        wishListRepository.delete(wishList);
     }
 }

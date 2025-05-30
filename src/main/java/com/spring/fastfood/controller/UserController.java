@@ -14,6 +14,7 @@ import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -109,8 +110,21 @@ public class UserController {
     }
 
     @GetMapping("/view-my-wish-list")
+    @PreAuthorize("hasAuthority('USER')")
     public DataResponse<List<WishListResponse>> viewMyWishList (){
         return new DataResponse<>(HttpStatus.OK.value(), "view my wish list",userService.viewMyWishList());
+    }
+
+    @DeleteMapping("/delete-wish-list/{wishListId}")
+    @PreAuthorize("hasAuthority('USER')")
+    public DataResponse<?> deleteWishList(@PathVariable Long wishListId) {
+        try {
+            userService.deleteWishListByUser(wishListId);
+            return new DataResponse<>(HttpStatus.BAD_REQUEST.value(), "user delete wish list successfully");
+        } catch (ResourceNotFoundException e) {
+            log.error("errorMessage = {}" , e.getMessage() , e.getCause());
+            return new DataResponseError(HttpStatus.BAD_REQUEST.value(), "user delete wish list fail");
+        }
     }
 
 }
