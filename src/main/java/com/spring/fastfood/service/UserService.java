@@ -23,6 +23,4 @@ public interface UserService {
      User getUserById(long userId);
      UserResponse viewMyInfo ();
      User findByUsername (String username);
-    List<WishListResponse> viewMyWishList ();
-    void deleteWishListByUser (long wishListId);
 }

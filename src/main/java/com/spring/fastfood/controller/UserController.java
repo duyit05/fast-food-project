@@ -108,23 +108,4 @@ public class UserController {
     public DataResponse<UserResponse> updateProfile (@RequestBody UserUpdateRequest request){
         return new DataResponse<>(HttpStatus.OK.value(), "update info", userService.updateProfile(request));
     }
-
-    @GetMapping("/view-my-wish-list")
-    @PreAuthorize("hasAuthority('USER')")
-    public DataResponse<List<WishListResponse>> viewMyWishList (){
-        return new DataResponse<>(HttpStatus.OK.value(), "view my wish list",userService.viewMyWishList());
-    }
-
-    @DeleteMapping("/delete-wish-list/{wishListId}")
-    @PreAuthorize("hasAuthority('USER')")
-    public DataResponse<?> deleteWishList(@PathVariable Long wishListId) {
-        try {
-            userService.deleteWishListByUser(wishListId);
-            return new DataResponse<>(HttpStatus.BAD_REQUEST.value(), "user delete wish list successfully");
-        } catch (ResourceNotFoundException e) {
-            log.error("errorMessage = {}" , e.getMessage() , e.getCause());
-            return new DataResponseError(HttpStatus.BAD_REQUEST.value(), "user delete wish list fail");
-        }
-    }
-
 }

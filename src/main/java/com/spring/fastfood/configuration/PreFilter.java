@@ -1,6 +1,8 @@
 package com.spring.fastfood.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.spring.fastfood.custom.CustomUserDetailService;
 import com.spring.fastfood.enums.TokenType;
 import com.spring.fastfood.exception.ErrorResponse;
@@ -10,7 +12,9 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpHeaders;
@@ -25,6 +29,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Date;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
@@ -34,61 +39,71 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 public class PreFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
-    private final CustomUserDetailService userDetail;
+    private final CustomUserDetailService customUserDetailService;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         log.info("{} {}", request.getMethod(), request.getRequestURI());
 
-        final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-
+        final String authHeader = request.getHeader(AUTHORIZATION);
         if (StringUtils.hasLength(authHeader) && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
-            log.info("token: {}...", token.substring(0, Math.min(15, token.length())));
-
+            log.info("token: {}...", token.substring(0, 15));
+            String username = "";
             try {
-                String username = jwtService.extractUsername(token, TokenType.ACCESS_TOKEN);
+                username = jwtService.extractUsername(token, TokenType.ACCESS_TOKEN);
                 log.info("username: {}", username);
-
-                if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                    UserDetails user = userDetail.loadUserByUsername(username);
-
-                    if (user != null) {
-                        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                                user, null, user.getAuthorities());
-                        authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                        SecurityContextHolder.getContext().setAuthentication(authToken); // ✅ Sửa chỗ này
-                        log.info("Authentication successful for user: {}", username);
-                    } else {
-                        log.error("User not found for username: {}", username);
-                        respondWithError(response, HttpServletResponse.SC_UNAUTHORIZED, request.getRequestURI(), "User not found");
-                        return;
-                    }
-                }
-
             } catch (AccessDeniedException e) {
-                log.error("Access denied: {}", e.getMessage());
-                respondWithError(response, HttpServletResponse.SC_FORBIDDEN, request.getRequestURI(), e.getMessage());
-                return;
-            } catch (Exception e) {
-                log.error("Error extracting username: {}", e.getMessage());
-                respondWithError(response, HttpServletResponse.SC_BAD_REQUEST, request.getRequestURI(), "Invalid token");
+                log.info(e.getMessage());
+                response.setStatus(HttpServletResponse.SC_OK);
+                response.setContentType("application/json");
+                response.setCharacterEncoding("UTF-8");
+                response.getWriter().write(errorResponse(request.getRequestURI(), e.getMessage()));
                 return;
             }
-        }
 
-        log.info("SecurityContext trước khi chuyển tiếp request: {}", SecurityContextHolder.getContext().getAuthentication());
-        filterChain.doFilter(request, response);
+            UserDetails user = customUserDetailService.loadUserByUsername(username);
+
+            SecurityContext context = SecurityContextHolder.createEmptyContext();
+            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+            authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            context.setAuthentication(authToken);
+            SecurityContextHolder.setContext(context);
+
+            filterChain.doFilter(request, response);
+        } else {
+            filterChain.doFilter(request, response);
+        }
     }
 
-    private void respondWithError(HttpServletResponse response, int statusCode, String path, String message) throws IOException {
-        response.setStatus(statusCode);
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
+    /**
+     * Create error response with pretty template
+     * @param message
+     * @return
+     */
+    private String errorResponse(String url, String message) {
+        try {
+            ErrorResponse error = new ErrorResponse();
+            error.setTimestamp(new Date());
+            error.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            error.setPath(url);
+            error.setError("Forbidden");
+            error.setMessage(message);
 
-        ErrorResponse error = new ErrorResponse(path, message);
-        new ObjectMapper().writeValue(response.getWriter(), error); // ✅ Sửa JSON response
+            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+            return gson.toJson(error);
+        } catch (Exception e) {
+            return ""; // Return an empty string if serialization fails
+        }
+    }
+
+    @Setter
+    @Getter
+    private class ErrorResponse {
+        private Date timestamp;
+        private int status;
+        private String path;
+        private String error;
+        private String message;
     }
 }

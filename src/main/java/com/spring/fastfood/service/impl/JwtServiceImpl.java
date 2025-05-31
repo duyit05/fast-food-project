@@ -1,6 +1,7 @@
 package com.spring.fastfood.service.impl;
 
 import com.spring.fastfood.enums.TokenType;
+import com.spring.fastfood.exception.InvalidDataException;
 import com.spring.fastfood.service.JwtService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -8,6 +9,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,7 @@ import static com.spring.fastfood.enums.TokenType.REFRESH_TOKEN;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class JwtServiceImpl implements JwtService {
 
     @Value("${jwt.expiry-time}")
@@ -73,13 +76,16 @@ public class JwtServiceImpl implements JwtService {
     }
 
     private Key getKey(TokenType type) {
-        byte[] keyBytes;
-        if (ACCESS_TOKEN.equals(type)) {
-            keyBytes = Decoders.BASE64.decode(JWT_SECRET_KEY);
-        } else {
-            keyBytes = Decoders.BASE64.decode(JWT_REFRESH_KEY);
+        log.info("Create key for type {}", type);
+        switch (type) {
+            case ACCESS_TOKEN -> {
+                return Keys.hmacShaKeyFor(Decoders.BASE64.decode(JWT_SECRET_KEY));
+            }
+            case REFRESH_TOKEN -> {
+                return Keys.hmacShaKeyFor(Decoders.BASE64.decode(JWT_REFRESH_KEY));
+            }
+            default -> throw new InvalidDataException("Invalid token type");
         }
-        return Keys.hmacShaKeyFor(keyBytes);
     }
 
     @Override

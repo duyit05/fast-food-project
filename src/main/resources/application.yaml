@@ -25,5 +25,5 @@ spring:
 jwt:
   expiry-time: 1
   expiry-day: 14
-  secret-key: AMFcvVlXa4mciVTMkhB7+d4eyI8PZcMF7QpU0A+ZxJs=38nwjwnxnjasddas
-  secret-refresh-key: oh9V0nBLReCFKJUa4X0R+4UCH4x9am8ccklRiBmYJYY=
+  secret-key: bXktc3VwZXItam90LXNlY3JldC1rZXktYWNjZXNzLTEyMzQ1
+  secret-refresh-key: cmVmcmVzaC1zZWNyZXQta2V5LWZvci1qd3QtcmVmcmVzaC0xMjM0NQ==

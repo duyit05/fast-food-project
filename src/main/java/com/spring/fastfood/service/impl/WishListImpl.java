@@ -17,6 +17,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -34,7 +37,7 @@ public class WishListImpl implements WishListService {
         User user = userService.findByUsername(username);
         Food food = foodService.getFoodById(request.getFoodId());
 
-        if(wishListRepository.findByUserAndFood(user,food).isPresent()){
+        if (wishListRepository.findByUserAndFood(user, food).isPresent()) {
             throw new ResourceNotFoundException("food already in wishlist");
         }
         WishList wishList = WishList.builder()
@@ -47,5 +50,28 @@ public class WishListImpl implements WishListService {
                 .user(userMapper.toUserResponse(wishList.getUser()))
                 .food(foodMapper.toFoodResponse(wishList.getFood()))
                 .build();
+    }
+
+    @Override
+    public List<WishListResponse> userViewMyWishList() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userService.findByUsername(username);
+        List<WishList> wishLists = wishListRepository.findByUser(user);
+        return wishLists.stream().map(
+                wishList ->
+                        WishListResponse.builder()
+                                .wishListId(wishList.getId())
+                                .food(foodMapper.toFoodResponse(wishList.getFood()))
+                                .build()
+        ).collect(Collectors.toList());
+    }
+
+    @Override
+    public void deleteWishListByUser(long wishListId) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userService.findByUsername(username);
+        WishList wishList = wishListRepository.findByIdAndUser(wishListId, user)
+                .orElseThrow(() -> new ResourceNotFoundException("wishlist not found or access denied"));
+        wishListRepository.delete(wishList);
     }
 }
