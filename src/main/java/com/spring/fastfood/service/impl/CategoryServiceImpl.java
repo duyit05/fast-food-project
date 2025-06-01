@@ -10,6 +10,7 @@ import com.spring.fastfood.model.Category;
 import com.spring.fastfood.model.Food;
 import com.spring.fastfood.model.FoodCategory;
 import com.spring.fastfood.repository.CategoryRepository;
+import com.spring.fastfood.repository.FoodCategoryRepository;
 import com.spring.fastfood.service.CategoryService;
 import com.spring.fastfood.service.FoodService;
 import lombok.NoArgsConstructor;
@@ -29,6 +30,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
+    private final FoodCategoryRepository foodCategoryRepository;
     private final FoodMapper foodMapper;
     private final FoodService foodService;
 
@@ -103,5 +105,22 @@ public class CategoryServiceImpl implements CategoryService {
                 .id(category.getId())
                 .categoryName(category.getCategoryName())
                 .build();
+    }
+
+    @Override
+    public List<FoodResponse> getListProductByCategoryId(long categoryId) {
+        List<Food> foods = foodCategoryRepository.findFoodByCategoryId(categoryId);
+        return foods.stream().map(
+                food ->
+                    FoodResponse.builder()
+                            .id(food.getId())
+                            .foodName(food.getFoodName())
+                            .price(food.getPrice())
+                            .lastedPrice(food.getLastedPrice())
+                            .stock(food.getStock())
+                            .brand(food.getBrand())
+                            .description(food.getDescription())
+                            .build())
+                .collect(Collectors.toList());
     }
 }

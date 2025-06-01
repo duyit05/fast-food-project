@@ -21,13 +21,13 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 @RequiredArgsConstructor
-@EnableMethodSecurity
+@EnableMethodSecurity(jsr250Enabled = true)
 public class AppConfig {
 
 
     private final CustomUserDetailService userDetailService;
     private final PreFilter preFilter;
-    private final String[] WHITE_LIST = {"/auth/**" , "/food/list-food","/category/list"};
+    private final String[] WHITE_LIST = {"/auth/**" , "/food/list-food","/food/by-category","/category/list"};
 
     @Bean
     public WebMvcConfigurer mvcConfigurer() {

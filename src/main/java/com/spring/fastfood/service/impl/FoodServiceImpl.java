@@ -39,6 +39,7 @@ public class FoodServiceImpl implements FoodService {
     private final CategoryRepository categoryRepository;
     private final FoodCategoryRepository foodCategoryRepository;
 
+
     @Override
     public PageResponse<?> getAllFood(int pageNo, int pageSize, String sortBy, String keyword) {
         int page = Math.max(pageNo - 1, 0);
@@ -163,5 +164,21 @@ public class FoodServiceImpl implements FoodService {
     public FoodResponse getDetailFood(long foodId) {
         Food food = getFoodById(foodId);
         return foodMapper.toFoodResponse(food);
+    }
+
+    @Override
+    public List<FoodResponse> getFoodByCategoryId(long categoryId) {
+        List<Food> foods = foodCategoryRepository.findFoodByCategoryId(categoryId);
+        return foods.stream().map(
+                food -> FoodResponse.builder()
+                        .id(food.getId())
+                        .foodName(food.getFoodName())
+                        .price(food.getPrice())
+                        .lastedPrice(food.getLastedPrice())
+                        .stock(food.getStock())
+                        .brand(food.getBrand())
+                        .description(food.getDescription())
+                        .build()
+        ).collect(Collectors.toList());
     }
 }

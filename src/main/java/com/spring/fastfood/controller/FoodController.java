@@ -7,6 +7,7 @@ import com.spring.fastfood.dto.response.FoodResponse;
 import com.spring.fastfood.dto.response.PageResponse;
 import com.spring.fastfood.exception.ResourceNotFoundException;
 import com.spring.fastfood.service.FoodService;
+import jakarta.annotation.security.PermitAll;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +15,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/food")
@@ -58,5 +61,10 @@ public class FoodController {
     @GetMapping("/{foodId}")
     public DataResponse<FoodResponse> getFoodById (@PathVariable long foodId){
         return new DataResponse<>(HttpStatus.ACCEPTED.value(), "get detail food",foodService.getDetailFood(foodId));
+    }
+
+    @GetMapping("/by-category")
+    public DataResponse<List<FoodResponse>> getFoodByCategoryId (@RequestParam long categoryId){
+        return new DataResponse<>(HttpStatus.OK.value(), "food by category",foodService.getFoodByCategoryId(categoryId));
     }
 }
