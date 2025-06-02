@@ -1,6 +1,7 @@
 package com.spring.fastfood.configuration;
 
 
+import com.spring.fastfood.enums.UserStatus;
 import com.spring.fastfood.exception.ResourceNotFoundException;
 import com.spring.fastfood.model.Role;
 import com.spring.fastfood.model.User;
@@ -33,6 +34,7 @@ public class DatabaseConfig {
 
                 User user = User.builder()
                         .username("admin")
+                        .status(UserStatus.ACTIVE)
                         .password(passwordEncoder.encode("admin"))
                         .build();
                 userRepository.save(user);

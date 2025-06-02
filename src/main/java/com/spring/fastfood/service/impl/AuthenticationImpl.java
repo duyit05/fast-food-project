@@ -62,19 +62,23 @@ public class AuthenticationImpl implements AuthenticationService {
     public UserResponse signUp(UserRequest request) throws ServerException, InsufficientDataException,
             ErrorResponseException, IOException, NoSuchAlgorithmException,
             InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
-        if(userRepository.existsByUsername(request.getUsername()))
+        if (userRepository.existsByUsername(request.getUsername()))
             throw new IllegalArgumentException("username has ben existed");
 
         User user = userMapper.toUser(request);
         user.setStatus(UserStatus.INACTIVE);
         user.setActiveCode(randomCode());
-        user.setAvatar(minioChannel.update(request.getAvatar()));
+        if (request.getAvatar() != null && !request.getUsername().isEmpty()) {
+            user.setAvatar(minioChannel.update(request.getAvatar()));
+        } else {
+            user.setAvatar(null);
+        }
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
         Role role = roleRepository.findByRoleName("USER").orElseThrow(
-                () ->new ResourceNotFoundException("can't find role USER"));
+                () -> new ResourceNotFoundException("can't find role USER"));
 
-        UserHasRole userHasRole = new UserHasRole(user,role);
+        UserHasRole userHasRole = new UserHasRole(user, role);
         user.setRoles(Collections.singletonList(userHasRole));
 
         return userMapper.toUserResponse(userRepository.save(user));
@@ -96,6 +100,9 @@ public class AuthenticationImpl implements AuthenticationService {
 
             if (user.getStatus().equals(UserStatus.INACTIVE))
                 throw new BadCredentialsException("user has been not active");
+
+            if (user.getStatus().equals(UserStatus.BLOCK))
+                throw new BadCredentialsException("account is block");
 
             if (!passwordEncoder.matches(request.getPassword(), user.getPassword()))
                 throw new BadCredentialsException("username or password incorrect");

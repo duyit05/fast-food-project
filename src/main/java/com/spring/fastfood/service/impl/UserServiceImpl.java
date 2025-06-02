@@ -1,19 +1,21 @@
 package com.spring.fastfood.service.impl;
 
+import com.spring.fastfood.dto.request.ChangePasswordRequest;
 import com.spring.fastfood.dto.request.UserRequest;
 import com.spring.fastfood.dto.request.UserUpdateRequest;
 import com.spring.fastfood.dto.response.PageResponse;
 import com.spring.fastfood.dto.response.UserResponse;
-import com.spring.fastfood.dto.response.WishListResponse;
 import com.spring.fastfood.enums.UserStatus;
+import com.spring.fastfood.exception.PasswordMismatchException;
 import com.spring.fastfood.exception.ResourceNotFoundException;
+import com.spring.fastfood.integration.MinioChannel;
 import com.spring.fastfood.mapper.FoodMapper;
 import com.spring.fastfood.mapper.UserMapper;
 import com.spring.fastfood.model.User;
-import com.spring.fastfood.model.WishList;
 import com.spring.fastfood.repository.UserRepository;
 import com.spring.fastfood.repository.WishListRepository;
 import com.spring.fastfood.service.UserService;
+import io.minio.errors.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -22,15 +24,18 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 
 @Service
@@ -39,13 +44,20 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
-    private final WishListRepository wishListRepository;
-    private final FoodMapper foodMapper;
+    private final MinioChannel minioChannel;
+    private final PasswordEncoder passwordEncoder;
 
 
     @Override
-    public UserResponse updateUser(long userId, UserRequest request) {
+    public UserResponse updateUser(long userId, UserRequest request) throws ServerException, InsufficientDataException,
+            ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException,
+            XmlParserException, InternalException {
         User user = getUserById(userId);
+        if(request.getAvatar() != null && !request.getAvatar().isEmpty()){
+            user.setAvatar(minioChannel.update(request.getAvatar()));
+        }else {
+            user.setAvatar(null);
+        }
         userMapper.updateUser(user, request);
         return userMapper.toUserResponse(userRepository.save(user));
     }
@@ -121,9 +133,16 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponse updateProfile(UserUpdateRequest request) {
+    public UserResponse updateProfile(UserUpdateRequest request) throws ServerException, InsufficientDataException,
+            ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException,
+            InvalidResponseException, XmlParserException, InternalException {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = findByUsername(username);
+        if(request.getAvatar() != null && !request.getAvatar().isEmpty()){
+            user.setAvatar(minioChannel.update(request.getAvatar()));
+        }else {
+            user.setAvatar(null);
+        }
         userMapper.updateUserInfo(user, request);
         return userMapper.toUserResponse(userRepository.save(user));
     }
@@ -141,5 +160,17 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new BadCredentialsException("username not exist"));
     }
 
-
+    @Override
+    public void changePasword(ChangePasswordRequest request) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = findByUsername(username);
+        if(!passwordEncoder.matches(request.getOldPassword(),user.getPassword())){
+            throw new BadCredentialsException("old password incorrect");
+        }
+        if(!request.getNewPassword().equals(request.getNewPasswordRepeat())){
+            throw new PasswordMismatchException("new password must match with new password repeat");
+        }
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+    }
 }
