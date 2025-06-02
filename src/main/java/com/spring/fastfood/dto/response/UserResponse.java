@@ -30,4 +30,6 @@ public class UserResponse implements Serializable {
     private UserStatus status;
     private Date dateOrBirth;
     private String activeCode;
+    private String avatar;
+
 }

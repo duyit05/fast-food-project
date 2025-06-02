@@ -7,11 +7,16 @@ import com.spring.fastfood.dto.response.ActiveResponse;
 import com.spring.fastfood.dto.response.TokenResponse;
 import com.spring.fastfood.dto.response.UserResponse;
 import com.spring.fastfood.model.User;
+import io.minio.errors.*;
 import jakarta.servlet.http.HttpServletRequest;
+
+import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 
 public interface AuthenticationService {
     TokenResponse authenticated (SigInRequest request);
-    UserResponse signUp (UserRequest request);
+    UserResponse signUp (UserRequest request) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException;
     TokenResponse refreshToken (HttpServletRequest request) throws InterruptedException;
     String logout (HttpServletRequest request) throws InterruptedException;
 

@@ -53,6 +53,9 @@ public class User extends AbstractEntity <Long> implements UserDetails, Serializ
     @Column(name = "active_code")
     private String activeCode;
 
+    @Column(name = "avatar" , columnDefinition = "LONGTEXT")
+    private String avatar;
+
     @OneToMany(mappedBy = "user" ,fetch = FetchType.EAGER,cascade = CascadeType.ALL , orphanRemoval = true)
     private List<UserHasRole> roles = new ArrayList<>();
 
@@ -67,6 +70,9 @@ public class User extends AbstractEntity <Long> implements UserDetails, Serializ
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<GroupHasUser> groups = new ArrayList<>();
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private Cart cart;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

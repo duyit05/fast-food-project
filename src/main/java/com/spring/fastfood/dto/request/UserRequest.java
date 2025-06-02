@@ -9,6 +9,7 @@ import com.spring.fastfood.validation.UserStatusSubset;
 import jakarta.validation.constraints.*;
 import lombok.*;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Date;
 
@@ -44,7 +45,8 @@ public class UserRequest {
     private UserStatus status;
 
     @NotNull(message = "date of birth must not be null")
-    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-    @JsonFormat(pattern = "MM/dd/yyyy")
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE,pattern = "MM/dd/yyyy" )
     private Date dateOrBirth;
+
+    private MultipartFile avatar;
 }

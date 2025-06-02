@@ -10,16 +10,22 @@ import com.spring.fastfood.dto.response.UserResponse;
 import com.spring.fastfood.service.AuthenticationService;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import io.minio.errors.*;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.crypto.SecretKey;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
 @RequestMapping("/auth")
@@ -30,8 +36,10 @@ import java.util.Base64;
 public class AuthenticationController {
     private final AuthenticationService authenticationService;
 
-    @PostMapping("/sign-up")
-    public DataResponse<UserResponse> signUp(@RequestBody UserRequest request) {
+    @PostMapping(value = "/sign-up", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public DataResponse<UserResponse> signUp(@Valid  UserRequest request) throws ServerException,
+            InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException,
+            InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
         return new DataResponse<>(HttpStatus.CREATED.value(), "sign up", authenticationService.signUp(request));
     }
 

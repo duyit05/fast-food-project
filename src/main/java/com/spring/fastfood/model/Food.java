@@ -45,6 +45,9 @@ public class Food extends AbstractEntity <Long>{
     @OneToMany(mappedBy = "food" , cascade = CascadeType.ALL)
     private List<Review> reviews = new ArrayList<>();
 
+    @OneToMany(mappedBy = "food" , cascade = CascadeType.ALL)
+    private List<CartItem> cartItem = new ArrayList<>();
+
     @OneToMany(mappedBy = "food", cascade = CascadeType.ALL)
     private List<OrderDetail> orderDetails = new ArrayList<>();
 }

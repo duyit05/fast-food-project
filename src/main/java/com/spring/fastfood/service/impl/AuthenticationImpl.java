@@ -9,6 +9,7 @@ import com.spring.fastfood.dto.response.UserResponse;
 import com.spring.fastfood.enums.TokenType;
 import com.spring.fastfood.enums.UserStatus;
 import com.spring.fastfood.exception.ResourceNotFoundException;
+import com.spring.fastfood.integration.MinioChannel;
 import com.spring.fastfood.mapper.UserMapper;
 import com.spring.fastfood.model.Role;
 import com.spring.fastfood.model.Token;
@@ -21,6 +22,7 @@ import com.spring.fastfood.service.EmailService;
 import com.spring.fastfood.service.JwtService;
 import com.spring.fastfood.service.TokenService;
 import io.micrometer.common.util.StringUtils;
+import io.minio.errors.*;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +35,9 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -51,15 +56,19 @@ public class AuthenticationImpl implements AuthenticationService {
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
     private final RoleRepository roleRepository;
+    private final MinioChannel minioChannel;
 
     @Override
-    public UserResponse signUp(UserRequest request) {
+    public UserResponse signUp(UserRequest request) throws ServerException, InsufficientDataException,
+            ErrorResponseException, IOException, NoSuchAlgorithmException,
+            InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
         if(userRepository.existsByUsername(request.getUsername()))
             throw new IllegalArgumentException("username has ben existed");
 
         User user = userMapper.toUser(request);
         user.setStatus(UserStatus.INACTIVE);
         user.setActiveCode(randomCode());
+        user.setAvatar(minioChannel.update(request.getAvatar()));
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
         Role role = roleRepository.findByRoleName("USER").orElseThrow(

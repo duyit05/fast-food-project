@@ -27,3 +27,9 @@ jwt:
   expiry-day: 14
   secret-key: eG9mdHo5ZGh6M3c1NmVpNXZ2eHBmMG84YnA0NTE0N2NrODJ3d3RnZGt3OXU3MjdodHJxaTJydXpmZ212eTRwY2lwZXRjNHViaXVraW9ndHN1NTB0d2NjdGpyMmoyZzJvMWN0OG51bzk3ZnhyZnE1Zjc1Z2RzdGMwaXdiN2QwZ3Y=
   secret-refresh-key: NXYwYnFvZmE5ZGVhb2tiY2c1anY2cW55YmMwNmw4M2Vicnh5OXg2NmN4bzZxOHl5cDZ3Y3g4bjBoN2pxbjN3ZHltdm05b3k3eGxzcjRhMmcydW5kMmt1dWlyaWljdnY1cGE3ancweXBxeTZ1OTZ0cHVoOTZ3OW04YmF4dmw0NjU=
+
+integration:
+  minio:
+    accessKey: admin
+    secretKey: admin123123za
+    url: http://localhost:9000
