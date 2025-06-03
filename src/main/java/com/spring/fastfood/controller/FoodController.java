@@ -7,6 +7,7 @@ import com.spring.fastfood.dto.response.FoodResponse;
 import com.spring.fastfood.dto.response.PageResponse;
 import com.spring.fastfood.exception.ResourceNotFoundException;
 import com.spring.fastfood.service.FoodService;
+import io.minio.errors.*;
 import jakarta.annotation.security.PermitAll;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
@@ -16,6 +17,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
 @RestController
@@ -27,7 +31,9 @@ public class FoodController {
 
     @PostMapping("/create")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public DataResponse<FoodResponse> getAllFood(@RequestBody FoodRequest request) {
+    public DataResponse<FoodResponse> getAllFood(@ModelAttribute FoodRequest request) throws ServerException,
+            InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException,
+            InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
         return new DataResponse<>(HttpStatus.OK.value(), "create food", foodService.createFood(request));
     }
 
@@ -43,7 +49,9 @@ public class FoodController {
 
     @PutMapping("/{foodId}")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public DataResponse<FoodResponse> updateFood (@PathVariable long foodId, @Valid @RequestBody FoodRequest request){
+    public DataResponse<FoodResponse> updateFood (@PathVariable long foodId, @Valid @ModelAttribute FoodRequest request)
+            throws ServerException, InsufficientDataException, ErrorResponseException, IOException,
+            NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException {
             return new DataResponse<>(HttpStatus.ACCEPTED.value(), "update food",foodService.updateFood(foodId,request));
     }
 

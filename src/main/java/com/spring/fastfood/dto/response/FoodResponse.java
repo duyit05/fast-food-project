@@ -21,4 +21,5 @@ public class FoodResponse {
     private Double lastedPrice;
     private Double price;
     private List<CategoryResponse> categories;
+    private List<ImageResponse> images;
 }

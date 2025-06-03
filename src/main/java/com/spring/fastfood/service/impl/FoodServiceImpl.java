@@ -3,17 +3,18 @@ package com.spring.fastfood.service.impl;
 import com.spring.fastfood.dto.request.FoodRequest;
 import com.spring.fastfood.dto.response.CategoryResponse;
 import com.spring.fastfood.dto.response.FoodResponse;
+import com.spring.fastfood.dto.response.ImageResponse;
 import com.spring.fastfood.dto.response.PageResponse;
 import com.spring.fastfood.exception.ResourceNotFoundException;
+import com.spring.fastfood.integration.MinioChannel;
 import com.spring.fastfood.mapper.FoodMapper;
-import com.spring.fastfood.model.Category;
-import com.spring.fastfood.model.Food;
-import com.spring.fastfood.model.FoodCategory;
-import com.spring.fastfood.model.Review;
+import com.spring.fastfood.model.*;
 import com.spring.fastfood.repository.CategoryRepository;
 import com.spring.fastfood.repository.FoodCategoryRepository;
 import com.spring.fastfood.repository.FoodRepository;
+import com.spring.fastfood.repository.ImageRepository;
 import com.spring.fastfood.service.FoodService;
+import io.minio.errors.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +24,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -38,6 +44,8 @@ public class FoodServiceImpl implements FoodService {
     private final FoodMapper foodMapper;
     private final CategoryRepository categoryRepository;
     private final FoodCategoryRepository foodCategoryRepository;
+    private final MinioChannel minioChannel;
+    private final ImageRepository imageRepository;
 
 
     @Override
@@ -70,9 +78,16 @@ public class FoodServiceImpl implements FoodService {
                                 return categoryResponse;
                             }
                     ).toList();
+                    List<ImageResponse> images = new ArrayList<>();
+                    for (Image image : food.getImages()){
+                        ImageResponse response = new ImageResponse();
+                        response.setDataUrl(image.getDataImage());
+                        images.add(response);
+                    }
                     FoodResponse foodResponse = foodMapper.toFoodResponse(food);
                     foodResponse.setAverageRating(calculateRating(food.getReviews()));
                     foodResponse.setCategories(categoryResponses);
+                    foodResponse.setImages(images);
                     return foodResponse;
                 }).collect(Collectors.toList());
 
@@ -96,7 +111,9 @@ public class FoodServiceImpl implements FoodService {
     }
 
     @Override
-    public FoodResponse createFood(FoodRequest request) {
+    public FoodResponse createFood(FoodRequest request) throws ServerException, InsufficientDataException,
+            ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException,
+            InvalidResponseException, XmlParserException, InternalException {
         Food food = foodMapper.toFood(request);
         Food foodSaved = foodRepository.save(food);
 
@@ -111,24 +128,46 @@ public class FoodServiceImpl implements FoodService {
                     .build();
             foodCategories.add(foodCategory);
         }
+        List<Image> images = new ArrayList<>();
+        if (request.getImages() != null && !request.getImages().isEmpty()) {
+            for (MultipartFile file : request.getImages()) {
+                String imageUrl = minioChannel.update(file);
+                Image image = Image.builder()
+                        .dataImage(imageUrl)
+                        .imageName("")
+                        .food(foodSaved)
+                        .build();
+                images.add(image);
+            }
+            imageRepository.saveAll(images);
+        }
         foodCategoryRepository.saveAll(foodCategories);
         foodSaved.setFoodCategories(foodCategories);
-        return foodMapper.toFoodResponse(foodSaved);
+        foodSaved.setImages(images);
+
+        FoodResponse foodResponse = foodMapper.toFoodResponse(foodSaved);
+        List<ImageResponse> responses = new ArrayList<>();
+        for (Image image : foodSaved.getImages()){
+            ImageResponse response = new ImageResponse();
+            response.setDataUrl(image.getDataImage());
+            responses.add(response);
+        }
+        foodResponse.setImages(responses);
+
+        return foodResponse;
     }
 
 
     @Override
     @Transactional
-    public FoodResponse updateFood(long foodId, FoodRequest request) {
+    public FoodResponse updateFood(long foodId, FoodRequest request) throws ServerException, InsufficientDataException,
+            ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException,
+            InvalidResponseException, XmlParserException, InternalException {
         Food food = getFoodById(foodId); // đã tồn tại trong DB
-
         // Cập nhật các thuộc tính food
         foodMapper.updateFood(food, request); // cập nhật name, price, brand, ...
-
         // Xoá hết liên kết cũ (do đã khai báo orphanRemoval = true)
         food.getFoodCategories().clear();
-
-        // Tạo danh sách mới
         List<FoodCategory> updatedFoodCategories = new ArrayList<>();
         for (Long categoryId : request.getCategoryId()) {
             Category category = categoryRepository.findById(categoryId)
@@ -140,13 +179,23 @@ public class FoodServiceImpl implements FoodService {
                     .build();
             updatedFoodCategories.add(foodCategory);
         }
-
         // Gán list mới vào food (list cũ đã clear ở trên)
         food.getFoodCategories().addAll(updatedFoodCategories);
-
-        // Lưu lại toàn bộ (food sẽ cascade save FoodCategory nếu cần)
+        // clear ảnh cũ
+        food.getImages().clear();
+        List<Image> images = new ArrayList<>();
+        if (request.getImages() != null && !request.getImages().isEmpty()){
+            for (MultipartFile file : request.getImages()){
+                String imageUrl = minioChannel.update(file);
+                Image image = Image.builder()
+                        .food(food)
+                        .dataImage(imageUrl)
+                        .imageName("")
+                        .build();
+                food.getImages().add(image);
+            }
+        }
         Food updatedFood = foodRepository.save(food);
-
         return foodMapper.toFoodResponse(updatedFood);
     }
 
