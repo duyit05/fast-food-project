@@ -28,4 +28,7 @@ public class CartItem extends AbstractEntity<Long>{
 
     @Column(name = "note")
     private String note;
+
+    @Column(name = "total_price")
+    private double totalPrice;
 }

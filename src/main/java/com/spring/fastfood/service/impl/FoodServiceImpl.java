@@ -183,7 +183,6 @@ public class FoodServiceImpl implements FoodService {
         food.getFoodCategories().addAll(updatedFoodCategories);
         // clear ảnh cũ
         food.getImages().clear();
-        List<Image> images = new ArrayList<>();
         if (request.getImages() != null && !request.getImages().isEmpty()){
             for (MultipartFile file : request.getImages()){
                 String imageUrl = minioChannel.update(file);
@@ -196,7 +195,14 @@ public class FoodServiceImpl implements FoodService {
             }
         }
         Food updatedFood = foodRepository.save(food);
-        return foodMapper.toFoodResponse(updatedFood);
+        FoodResponse response = foodMapper.toFoodResponse(updatedFood);
+        List<ImageResponse> imageResponses = updatedFood.getImages().stream()
+                .map(img -> ImageResponse.builder()
+                        .dataUrl(img.getDataImage())
+                        .build())
+                .collect(Collectors.toList());
+        response.setImages(imageResponses);
+        return response;
     }
 
     @Override
@@ -231,3 +237,53 @@ public class FoodServiceImpl implements FoodService {
         ).collect(Collectors.toList());
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
