@@ -7,4 +7,6 @@ public interface CartService {
   CartResponse addToCart (CartItemRequest request);
   CartResponse getMyCart ();
   void deleteFromCart (long foodId);
+
+
 }

@@ -12,6 +12,7 @@ import com.spring.fastfood.model.Food;
 import com.spring.fastfood.model.User;
 import com.spring.fastfood.repository.CartItemRepository;
 import com.spring.fastfood.repository.CartRepository;
+import com.spring.fastfood.service.CartItemService;
 import com.spring.fastfood.service.CartService;
 import com.spring.fastfood.service.FoodService;
 import com.spring.fastfood.service.UserService;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Repository
@@ -34,61 +36,74 @@ public class CartImpl implements CartService {
     private final CartMapper cartMapper;
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
+    private final CartItemService cartItemService;
 
     @Override
     public CartResponse addToCart(CartItemRequest request) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userService.findByUsername(username);
         Food food = foodService.getFoodById(request.getFoodId());
-        Cart cartOfUser = cartRepository.findByUser(user).orElseGet(() -> {
-            Cart cart = new Cart();
-            cart.setUser(user);
-            return cartRepository.save(cart);
+        Cart cart = cartRepository.findByUser(user).orElseGet(() -> {
+            Cart cartUser = new Cart();
+            cartUser.setUser(user);
+            return cartRepository.save(cartUser);
         });
-        CartItem cartAndFood = cartItemRepository.findByCartAndFood(cartOfUser, food).orElse(null);
-        if (cartAndFood != null) {
-            int newQuantity = cartAndFood.getQuantity() + request.getQuantity();
-            cartAndFood.setQuantity(newQuantity);
-            cartAndFood.setPriceAtAddTime(food.getPrice());
-            cartAndFood.setTotalPrice(newQuantity * food.getPrice());
-        } else {
-            cartAndFood = CartItem.builder()
-                    .cart(cartOfUser)
-                    .food(food)
-                    .quantity(request.getQuantity())
-                    .priceAtAddTime(food.getPrice())
-                    .note(request.getNote())
-                    .totalPrice(request.getQuantity() * food.getPrice())
-                    .build();
-            cartOfUser.getCartItems().add(cartAndFood);
-        }
-        cartRepository.save(cartOfUser);
-        List<CartItemResponse> cartItemResponses = new ArrayList<>();
-        for (CartItem item : cartOfUser.getCartItems()) {
-            Food foodItem = item.getFood();
-            FoodResponse foodResponse = FoodResponse.builder()
-                    .id(foodItem.getId())
-                    .foodName(foodItem.getFoodName())
-                    .price(foodItem.getPrice())
-                    .brand(foodItem.getBrand())
-                    .build();
 
-            CartItemResponse cartItemResponse = CartItemResponse.builder()
-                    .food(foodResponse)
-                    .quantity(item.getQuantity())
-                    .priceAtAddTime(item.getPriceAtAddTime())
-                    .note(item.getNote())
-                    .totalPrice(item.getTotalPrice())
-                    .build();
+        cartItemService.addOrUpdateCartItem(cart,food,request);
+        List<CartItem> cartItems = cartItemRepository.findByCart(cart);
+        List<CartItemResponse> responses = cartItems.stream().map(
+                item -> {
+                    Food foodItem = item.getFood();
+                    FoodResponse foodResponse = FoodResponse
+                            .builder()
+                            .id(foodItem.getId())
+                            .foodName(foodItem.getFoodName())
+                            .price(foodItem.getPrice())
+                            .brand(foodItem.getBrand())
+                            .build();
+                    return CartItemResponse.builder()
+                            .food(foodResponse)
+                            .quantity(item.getQuantity())
+                            .priceAtAddTime(item.getPriceAtAddTime())
+                            .note(item.getNote())
+                            .totalPrice(item.getTotalPrice())
+                            .build();
+                }
+        ).collect(Collectors.toList());
 
-            cartItemResponses.add(cartItemResponse);
-        }
+        return CartResponse.builder()
+                .username(username)
+                .cartItem(responses)
+                .size(responses.size())
+                .build();
 
-        // Trả về response
-        CartResponse response = new CartResponse();
-        response.setUsername(username);
-        response.setCartItem(cartItemResponses);
-        return response;
+//        List<CartItemResponse> cartItemResponses = new ArrayList<>();
+//        for (CartItem item : cartOfUser.getCartItems()) {
+//            Food foodItem = item.getFood();
+//            FoodResponse foodResponse = FoodResponse.builder()
+//                    .id(foodItem.getId())
+//                    .foodName(foodItem.getFoodName())
+//                    .price(foodItem.getPrice())
+//                    .brand(foodItem.getBrand())
+//                    .build();
+//
+//            CartItemResponse cartItemResponse = CartItemResponse.builder()
+//                    .food(foodResponse)
+//                    .quantity(item.getQuantity())
+//                    .priceAtAddTime(item.getPriceAtAddTime())
+//                    .note(item.getNote())
+//                    .totalPrice(item.getTotalPrice())
+//                    .build();
+//
+//            cartItemResponses.add(cartItemResponse);
+//        }
+//
+//        // Trả về response
+//        CartResponse response = new CartResponse();
+//        response.setUsername(username);
+//        response.setCartItem(cartItemResponses);
+//        response.setSize(cartItemResponses.size());
+//        return response;
     }
 
     public Cart findCartByUser(User user) {
@@ -123,6 +138,7 @@ public class CartImpl implements CartService {
         CartResponse response = new CartResponse();
         response.setUsername(username);
         response.setCartItem(cartItems);
+        response.setSize(cartItems.size());
         return response;
     }
 
