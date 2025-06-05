@@ -13,6 +13,7 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CartResponse {
     private String username;
+    private long cartId;
     private int size;
     private List<CartItemResponse> cartItem;
 }

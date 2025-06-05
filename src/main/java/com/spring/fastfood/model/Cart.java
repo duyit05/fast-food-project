@@ -16,7 +16,7 @@ import java.util.List;
 @NoArgsConstructor
 public class Cart extends AbstractEntity<Long>{
 
-    @OneToOne
+    @OneToOne(cascade = {CascadeType.DETACH,CascadeType.MERGE,CascadeType.PERSIST,CascadeType.REFRESH})
     @JoinColumn(name = "user_id", unique = true,nullable = false)
     private User user;
 

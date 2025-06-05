@@ -1,5 +1,6 @@
 package com.spring.fastfood.dto.response;
 
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 
@@ -10,7 +11,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class FoodResponse {
     private Long id;
     private Integer stock;

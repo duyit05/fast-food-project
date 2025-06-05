@@ -15,6 +15,7 @@ public class CartItemImpl implements CartItemService {
 
     private final CartItemRepository cartItemRepository;
     public void addOrUpdateCartItem (Cart cart, Food food, CartItemRequest request){
+        // check cart item đã có food chưa nếu có rồi thì update quantiy and price
         CartItem existimgCartItem = cartItemRepository.findByCartAndFood(cart,food).orElse(null);
         if(existimgCartItem != null){
             int newQuantity = existimgCartItem.getQuantity() + request.getQuantity();
