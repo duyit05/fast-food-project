@@ -74,6 +74,9 @@ public class User extends AbstractEntity <Long> implements UserDetails, Serializ
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private Cart cart;
 
+    @OneToMany(mappedBy = "user",cascade = CascadeType.ALL)
+    private List<Voucher> vouchers = new ArrayList<>();
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         if (roles == null) return Collections.emptyList();
