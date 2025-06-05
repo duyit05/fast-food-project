@@ -59,4 +59,10 @@ public class CartController {
             return new DataResponse<>(HttpStatus.BAD_REQUEST.value(),"delete cart fail");
         }
     }
+
+    @GetMapping("/get-cart/{cartId}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public DataResponse<CartResponse> getCartById (@PathVariable long cartId){
+        return new DataResponse<>(HttpStatus.OK.value(),"get cart by id",cartService.getCartById(cartId));
+    }
 }

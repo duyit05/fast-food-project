@@ -13,4 +13,6 @@ public interface CartService {
   List<CartResponse> getAllCart ();
   void deleteCart (long cartId);
 
+  CartResponse getCartById (long cartId);
+
 }

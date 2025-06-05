@@ -190,7 +190,27 @@ public class CartImpl implements CartService {
 
     @Override
     public void deleteCart(long cartId) {
-         cartRepository.deleteById(cartId);
-         log.info("delete success cart id: {}", cartId);
+        cartRepository.deleteById(cartId);
+        log.info("delete success cart id: {}", cartId);
+    }
+
+    @Override
+    public CartResponse getCartById(long cartId) {
+        Cart cart = cartRepository.findById(cartId)
+                .orElseThrow(() -> new ResourceNotFoundException("can not found card id: " + cartId));
+        List<CartItemResponse> cartItemResponses = new ArrayList<>();
+        for (CartItem item : cart.getCartItems()) {
+            Food food = item.getFood();
+            FoodResponse foodResponse = foodMapper.toFoodResponse(food);
+            CartItemResponse cartItemResponse = cartItemMapper.toCartItemResponse(item);
+            cartItemResponse.setFood(foodResponse);
+            cartItemResponses.add(cartItemResponse);
+        }
+        CartResponse response = new CartResponse();
+        response.setUsername(cart.getUser().getUsername());
+        response.setCartId(cart.getId());
+        response.setSize(cartItemResponses.size());
+        response.setCartItem(cartItemResponses);
+        return response;
     }
 }
