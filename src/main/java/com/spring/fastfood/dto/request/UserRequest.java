@@ -24,6 +24,7 @@ public class UserRequest {
     private String username;
 
     @NotBlank(message = "password must not be blank")
+    @Size(min = 8,message = "password at least 8 characters")
     private String password;
 
     @NotNull(message = "first name must not be null")
