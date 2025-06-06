@@ -1,22 +1,20 @@
 package com.spring.fastfood.validation;
 
-import com.spring.fastfood.enums.UserStatus;
 import com.spring.fastfood.enums.VoucherType;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
-import org.hibernate.usertype.UserType;
 
 import java.util.Arrays;
 
-public class UserStatusSubSetValidator implements ConstraintValidator <UserStatusSubset , UserStatus> {
-    private UserStatus[] status;
+public class VoucherSubsetValidator implements ConstraintValidator<VoucherSubset, VoucherType> {
+    private VoucherType[] status;
     @Override
-    public void initialize(UserStatusSubset constraint) {
+    public void initialize(VoucherSubset constraint) {
         this.status = constraint.anyOf();
     }
 
     @Override
-    public boolean isValid(UserStatus value, ConstraintValidatorContext context) {
+    public boolean isValid(VoucherType value, ConstraintValidatorContext context) {
         return value == null || Arrays.asList(status).contains(value);
     }
 }

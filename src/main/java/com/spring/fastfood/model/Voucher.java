@@ -1,9 +1,11 @@
 package com.spring.fastfood.model;
 
+import com.spring.fastfood.enums.VoucherType;
 import com.spring.fastfood.validation.GenderSubset;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 @Getter
@@ -29,13 +31,13 @@ public class Voucher {
     private double discount;
 
     @Column(name = "start_date")
-    private Date startDate;
+    private LocalDate startDate;
 
     @Column(name = "end_date")
-    private Date endDate;
+    private LocalDate endDate;
 
     @Column(name = "status")
-    private boolean status;
+    private VoucherType status;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
