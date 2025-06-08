@@ -24,9 +24,10 @@ public class VoucherServiceImpl implements VoucherService {
     private final VoucherRepository voucherRepository;
     private final VoucherMapper voucherMapper;
 
-    public String randomCode (){
-        return UUID.randomUUID().toString().replace("-","").substring(0,10);
+    public String randomCode() {
+        return UUID.randomUUID().toString().replace("-", "").substring(0, 10);
     }
+
     @Override
     public VoucherResponse createVoucher(VoucherRequest request) {
         Voucher voucher = Voucher.builder()
@@ -37,32 +38,20 @@ public class VoucherServiceImpl implements VoucherService {
                 .endDate(LocalDate.now().plusDays(5))
                 .status(VoucherType.VALID)
                 .build();
-       return voucherMapper.toVoucherResponse(voucherRepository.save(voucher));
+        return voucherMapper.toVoucherResponse(voucherRepository.save(voucher));
     }
 
     @Override
     public List<VoucherResponse> getAllVoucher() {
         List<Voucher> vouchers = voucherRepository.findAll();
-        return vouchers.stream().map (
-                voucher -> {
-                    return  VoucherResponse.builder()
-                           .code(voucher.getCode())
-                           .description(voucher.getDescription())
-                           .discount(voucher.getDiscount())
-                           .startDate(voucher.getStartDate())
-                           .endDate(voucher.getEndDate())
-                           .status(voucher.getStatus())
-                           .build();
-
-                }
-        ).collect(Collectors.toList());
+        return vouchers.stream().map(voucherMapper::toVoucherResponse).collect(Collectors.toList());
     }
 
     @Override
     public VoucherResponse updateVoucherById(long voucherId, VoucherRequest request) {
         Voucher voucher = voucherRepository.findById(voucherId)
                 .orElseThrow(() -> new ResourceNotFoundException("not found voucher with id: " + voucherId));
-        voucherMapper.updateVoucher(voucher,request);
+        voucherMapper.updateVoucher(voucher, request);
         return voucherMapper.toVoucherResponse(voucherRepository.save(voucher));
     }
 

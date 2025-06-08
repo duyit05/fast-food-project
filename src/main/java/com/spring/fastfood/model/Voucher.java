@@ -15,11 +15,7 @@ import java.util.Date;
 @NoArgsConstructor
 @Entity
 @Table(name = "tbl_voucher")
-public class Voucher {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Voucher extends AbstractEntity<Long> {
 
     @Column(name = "code")
     private String code;

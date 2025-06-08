@@ -5,13 +5,16 @@ import com.spring.fastfood.dto.request.UserRequest;
 import com.spring.fastfood.dto.request.UserUpdateRequest;
 import com.spring.fastfood.dto.response.PageResponse;
 import com.spring.fastfood.dto.response.UserResponse;
+import com.spring.fastfood.dto.response.VoucherResponse;
 import com.spring.fastfood.enums.UserStatus;
 import com.spring.fastfood.exception.PasswordMismatchException;
 import com.spring.fastfood.exception.ResourceNotFoundException;
 import com.spring.fastfood.integration.MinioChannel;
 import com.spring.fastfood.mapper.FoodMapper;
 import com.spring.fastfood.mapper.UserMapper;
+import com.spring.fastfood.mapper.VoucherMapper;
 import com.spring.fastfood.model.User;
+import com.spring.fastfood.model.Voucher;
 import com.spring.fastfood.repository.UserRepository;
 import com.spring.fastfood.repository.WishListRepository;
 import com.spring.fastfood.service.UserService;
@@ -46,16 +49,16 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final MinioChannel minioChannel;
     private final PasswordEncoder passwordEncoder;
-
+    private final VoucherMapper voucherMapper;
 
     @Override
     public UserResponse updateUser(long userId, UserRequest request) throws ServerException, InsufficientDataException,
             ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException,
             XmlParserException, InternalException {
         User user = getUserById(userId);
-        if(request.getAvatar() != null && !request.getAvatar().isEmpty()){
+        if (request.getAvatar() != null && !request.getAvatar().isEmpty()) {
             user.setAvatar(minioChannel.update(request.getAvatar()));
-        }else {
+        } else {
             user.setAvatar(null);
         }
         userMapper.updateUser(user, request);
@@ -138,19 +141,22 @@ public class UserServiceImpl implements UserService {
             InvalidResponseException, XmlParserException, InternalException {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = findByUsername(username);
-        if(request.getAvatar() != null && !request.getAvatar().isEmpty()){
+        if (request.getAvatar() != null && !request.getAvatar().isEmpty()) {
             user.setAvatar(minioChannel.update(request.getAvatar()));
-        }else {
+        } else {
             user.setAvatar(null);
         }
         userMapper.updateUserInfo(user, request);
         return userMapper.toUserResponse(userRepository.save(user));
     }
+    @Override
+    public String getContextHolder() {
+        return SecurityContextHolder.getContext().getAuthentication().getName();
+    }
 
     @Override
     public UserResponse viewMyInfo() {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = findByUsername(username);
+        User user = findByUsername(getContextHolder());
         return userMapper.toUserResponse(user);
     }
 
@@ -161,16 +167,29 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void changePasword(ChangePasswordRequest request) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = findByUsername(username);
-        if(!passwordEncoder.matches(request.getOldPassword(),user.getPassword())){
+    public void changePassword(ChangePasswordRequest request) {
+        User user = findByUsername(getContextHolder());
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
             throw new BadCredentialsException("old password incorrect");
         }
-        if(!request.getNewPassword().equals(request.getNewPasswordRepeat())){
+        if (!request.getNewPassword().equals(request.getNewPasswordRepeat())) {
             throw new PasswordMismatchException("new password must match with new password repeat");
         }
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
+    }
+
+    @Override
+    public UserResponse viewMyVoucher() {
+        User user = findByUsername(getContextHolder());
+        List<VoucherResponse> voucherResponses = new ArrayList<>();
+        for (Voucher voucher : user.getVouchers()) {
+            VoucherResponse response = voucherMapper.toVoucherResponse(voucher);
+            log.info("response : {} " , response.getVoucherId());
+            voucherResponses.add(response);
+        }
+        UserResponse response = userMapper.toUserResponse(user);
+        response.setVouchers(voucherResponses);
+        return response;
     }
 }

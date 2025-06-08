@@ -103,12 +103,6 @@ public class UserController {
     @GetMapping("/view-profile")
     @PreAuthorize("hasAuthority('USER')")
     public DataResponse<UserResponse> viewProfile (){
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new AccessDeniedException("Bạn chưa đăng nhập!");
-        }
-
-        log.info("User từ SecurityContext: {}", authentication.getName());
         return new DataResponse<>(HttpStatus.OK.value(), "view info", userService.viewMyInfo());
     }
 
@@ -122,11 +116,17 @@ public class UserController {
     @PostMapping("/change-password")
     public DataResponse<?> changePassword(@RequestBody ChangePasswordRequest request) {
         try {
-            userService.changePasword(request);
+            userService.changePassword(request);
             return new DataResponse<>(HttpStatus.ACCEPTED.value(), "Password has been changed successfully");
         } catch (RuntimeException e) {
             log.error("Change password error: {}", e.getMessage());
             return new DataResponse<>(HttpStatus.BAD_REQUEST.value(), e.getMessage());
         }
     }
+
+    @GetMapping("/view-my-voucher")
+    public DataResponse<UserResponse> viewMyVoucher (){
+        return new DataResponse<>(HttpStatus.OK.value(), "view info", userService.viewMyVoucher());
+    }
+
 }

@@ -13,6 +13,8 @@ import java.util.List;
 public interface UserMapper {
     @Mapping(target = "avatar", ignore = true)
     User toUser (UserRequest request);
+
+
     UserResponse toUserResponse (User user);
 
     @Mapping(target = "avatar", ignore = true)

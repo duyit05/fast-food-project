@@ -9,6 +9,7 @@ import com.spring.fastfood.dto.response.WishListResponse;
 import com.spring.fastfood.enums.UserStatus;
 import com.spring.fastfood.model.User;
 import io.minio.errors.*;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.io.IOException;
 import java.security.InvalidKeyException;
@@ -28,5 +29,8 @@ public interface UserService {
      User getUserById(long userId);
      UserResponse viewMyInfo ();
      User findByUsername (String username);
-     void changePasword (ChangePasswordRequest request);
+     void changePassword (ChangePasswordRequest request);
+     UserResponse viewMyVoucher ();
+
+    public String getContextHolder();
 }

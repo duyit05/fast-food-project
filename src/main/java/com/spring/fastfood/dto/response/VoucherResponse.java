@@ -14,6 +14,7 @@ import java.util.Date;
 @NoArgsConstructor
 @Builder
 public class VoucherResponse {
+    private long voucherId;
     private String code;
     private String description;
     private double discount;
