@@ -18,7 +18,7 @@ import java.util.Date;
 @NoArgsConstructor
 @Builder
 public class VoucherRequest {
-
+    private String code;
     @NotBlank(message = "description can not be blank")
     private String description;
     @Min(value = 1, message = "discount must large than 0")

@@ -6,5 +6,7 @@ public enum VoucherType {
     @JsonProperty("expired")
     EXPIRED,
     @JsonProperty("valid")
-    VALID
+    VALID,
+    @JsonProperty("used")
+    USED
 }

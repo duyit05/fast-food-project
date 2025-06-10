@@ -1,5 +1,6 @@
 package com.spring.fastfood.controller;
 
+import com.spring.fastfood.dto.request.CheckVoucherRequest;
 import com.spring.fastfood.dto.request.VoucherRequest;
 import com.spring.fastfood.dto.response.DataResponse;
 import com.spring.fastfood.dto.response.VoucherResponse;
@@ -9,6 +10,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -50,5 +52,11 @@ public class VoucherController {
             return new DataResponse<>(HttpStatus.NO_CONTENT.value(), "delete voucher fail");
 
         }
+    }
+    @PostMapping("/check-voucher/{voucherId}")
+    @PreAuthorize("hasAnyAuthority('ADMIN','USER')")
+    ResponseEntity<?> checkVoucher (@PathVariable long voucherId, @RequestBody CheckVoucherRequest request){
+        voucherService.checkVoucher(voucherId, request);
+        return ResponseEntity.ok().build();
     }
 }

@@ -1,9 +1,13 @@
 package com.spring.fastfood.service.impl;
 
+import com.spring.fastfood.dto.request.CheckVoucherRequest;
 import com.spring.fastfood.dto.request.VoucherRequest;
+import com.spring.fastfood.dto.response.CheckVoucherResponse;
+import com.spring.fastfood.dto.response.SuccessResponse;
 import com.spring.fastfood.dto.response.VoucherResponse;
 import com.spring.fastfood.enums.VoucherType;
 import com.spring.fastfood.exception.ResourceNotFoundException;
+import com.spring.fastfood.exception.VoucherStillValidException;
 import com.spring.fastfood.mapper.VoucherMapper;
 import com.spring.fastfood.model.Voucher;
 import com.spring.fastfood.repository.VoucherRepository;
@@ -59,5 +63,20 @@ public class VoucherServiceImpl implements VoucherService {
     public void deleteVoucherById(long voucherId) {
         voucherRepository.deleteById(voucherId);
         log.info("delete voucher success");
+    }
+
+    @Override
+    public void checkVoucher(long voucherId, CheckVoucherRequest request) {
+        Voucher voucher = voucherRepository.findById(voucherId)
+                .orElseThrow(() -> new ResourceNotFoundException("not found voucher with id: " + voucherId));
+        if (voucher.getEndDate().isBefore(LocalDate.now())) {
+            throw new VoucherStillValidException("voucher is still valid and cannot be modified");
+        }
+        if (!voucher.getCode().equals(request.getCode())) {
+            throw new ResourceNotFoundException("voucher code incorrect");
+        }
+        if (voucher.getStatus().equals(VoucherType.USED)) {
+            throw new VoucherStillValidException("voucher has been used");
+        }
     }
 }
