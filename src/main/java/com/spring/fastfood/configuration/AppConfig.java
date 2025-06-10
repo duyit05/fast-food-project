@@ -30,7 +30,8 @@ public class AppConfig {
     private final String[] WHITE_LIST = {"/auth/**" ,
             "/food/list-food","/food/by-category","/food/*",
             "/category/list",
-            "/payment/list"
+            "/payment/list",
+            "/ship/list"
     };
 
     @Bean

@@ -1,9 +1,7 @@
 package com.spring.fastfood.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import com.spring.fastfood.enums.ShipType;
+import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.ArrayList;
@@ -25,6 +23,10 @@ public class Ship extends AbstractEntity <Integer> {
 
     @Column(name = "ship_price")
     private Double shipPrice;
+
+    @Column(name = "ship_type")
+    @Enumerated(EnumType.STRING)
+    private ShipType shipType;
 
     @OneToMany(mappedBy = "ship")
     private List<Order> orders = new ArrayList<>();

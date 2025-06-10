@@ -8,6 +8,7 @@ import jakarta.validation.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -28,7 +29,8 @@ public class GlobalExceptionHandler {
 
 
     @ExceptionHandler({ConstraintViolationException.class,
-            MissingServletRequestParameterException.class, MethodArgumentNotValidException.class})
+            MissingServletRequestParameterException.class, MethodArgumentNotValidException.class,
+            HttpMessageNotReadableException.class})
     @ApiResponses(value = {
             @ApiResponse(responseCode = "400", description = "Bad Request",
                     content = {@Content(mediaType = APPLICATION_JSON_VALUE,
@@ -53,7 +55,7 @@ public class GlobalExceptionHandler {
         errorResponse.setPath(request.getDescription(false).replace("uri=", ""));
 
         String message = e.getMessage();
-        if (e instanceof MethodArgumentNotValidException) {
+        if (e instanceof MethodArgumentNotValidException || e instanceof HttpMessageNotReadableException) {
             int start = message.lastIndexOf("[") + 1;
             int end = message.lastIndexOf("]") - 1;
             message = message.substring(start, end);
@@ -65,7 +67,7 @@ public class GlobalExceptionHandler {
         } else if (e instanceof ConstraintViolationException) {
             errorResponse.setError("Invalid Parameter");
             errorResponse.setMessage(message.substring(message.indexOf(" ") + 1));
-        } else {
+         } else {
             errorResponse.setError("Invalid Data");
             errorResponse.setMessage(message);
         }
@@ -264,5 +266,33 @@ public class GlobalExceptionHandler {
         errorResponse.setError(HttpStatus.BAD_REQUEST.getReasonPhrase());
         errorResponse.setMessage(e.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    @ExceptionHandler(DataExistException.class)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "400", description = "Bad request",
+                    content = {@Content(mediaType = APPLICATION_JSON_VALUE,
+                            examples = @ExampleObject(
+                                    name = "400 Response",
+                                    summary = "Handle exception when bad request",
+                                    value = """
+                                            {
+                                              "timestamp": "2023-10-19T06:07:35.321+00:00",
+                                              "status": 400,
+                                              "path": "/api/v1/...",
+                                              "error": "Bad request",
+                                              "message": "Bad request"
+                                            }
+                                            """
+                            ))})
+    })
+    public ErrorResponse handleDataExistException(DataExistException e, WebRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse.setTimestamp(new Date());
+        errorResponse.setPath(request.getDescription(false).replace("uri=", ""));
+        errorResponse.setStatus(BAD_REQUEST.value());
+        errorResponse.setError(BAD_REQUEST.getReasonPhrase());
+        errorResponse.setMessage(e.getMessage());
+        return errorResponse;
     }
 }
