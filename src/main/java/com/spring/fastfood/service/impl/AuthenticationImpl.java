@@ -124,6 +124,7 @@ public class AuthenticationImpl implements AuthenticationService {
                     .accessToken(accessToken)
                     .refreshToken(refreshToken)
                     .userId(user.getId())
+                    .roles(authorities)
                     .build();
         } catch (BadCredentialsException | DisabledException e) {
             log.error("errorMessage: {}", e.getMessage());
