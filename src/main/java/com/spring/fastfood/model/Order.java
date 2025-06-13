@@ -31,7 +31,7 @@ public class Order extends AbstractEntity <Long>{
     @Column(name ="total_price")
     private Double totalPrice;
 
-    @OneToMany(mappedBy = "order")
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL,orphanRemoval = true)
     private List<OrderDetail> orderDetails = new ArrayList<>();
 
     @ManyToOne
@@ -45,6 +45,4 @@ public class Order extends AbstractEntity <Long>{
     @ManyToOne
     @JoinColumn(name = "payment_id")
     private Payment payment;
-
-
 }

@@ -66,6 +66,11 @@ public class PaymentServiceImpl implements PaymentService {
     public void deletePaymentById(long paymentId) {
         paymentRepository.deleteById(paymentId);
         log.info("delete payment successfully");
+    }
 
+    @Override
+    public Payment findPaymentById(long paymentId) {
+        return paymentRepository.findById(paymentId)
+                .orElseThrow(()-> new ResourceNotFoundException("can't found payment with id: "+paymentId));
     }
 }

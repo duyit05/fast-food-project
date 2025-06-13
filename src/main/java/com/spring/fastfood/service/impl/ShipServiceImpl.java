@@ -79,4 +79,10 @@ public class ShipServiceImpl implements ShipService {
     public void deleteShipById(long shipId) {
         shipRepository.deleteById(shipId);
     }
+
+    @Override
+    public Ship findShipById(long shipId) {
+        return shipRepository.findById(shipId)
+                .orElseThrow(() -> new ResourceNotFoundException("can't found ship id:" + shipId));
+    }
 }
