@@ -46,4 +46,9 @@ public class OrderController {
             return new DataResponse<>(HttpStatus.BAD_REQUEST.value(), "delete order fail");
         }
     }
+    @GetMapping("/my-order")
+    @PreAuthorize("hasAuthority('USER')")
+    DataResponse<List<OrderResponse>> userViewMyOrder (){
+        return new DataResponse<>(HttpStatus.OK.value(),"view order",orderService.userViewOrder());
+    }
 }

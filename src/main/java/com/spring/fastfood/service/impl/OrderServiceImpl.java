@@ -24,7 +24,6 @@ import java.util.Map;
 @Slf4j
 public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
-    private final FoodRepository foodRepository;
     private final UserService userService;
     private final ShipService shipService;
     private final PaymentService paymentService;
@@ -172,5 +171,39 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public void deleteOrder(Long id) {
         orderRepository.deleteById(id);
+    }
+
+    @Override
+    public List<OrderResponse> userViewOrder() {
+        User user = userService.findByUsername(userService.getContextHolder());
+        List<Order> orders = orderRepository.findByUser(user);
+        List<OrderResponse> response = new ArrayList<>();
+        for (Order order : orders){
+            List<OrderDetailResponse> orderDetailResponses = new ArrayList<>();
+            for (OrderDetail orderDetail : order.getOrderDetails()) {
+                OrderDetailResponse orderDetailResponse = new OrderDetailResponse();
+                orderDetailResponse.setOrderDetailId(orderDetail.getId());
+                orderDetailResponse.setFoodId(orderDetail.getFood().getId());
+                orderDetailResponse.setFoodName(orderDetail.getFood().getFoodName());
+                orderDetailResponse.setAmount(orderDetail.getAmount());
+                orderDetailResponse.setPrice(orderDetail.getPrice());
+                orderDetailResponse.setUnitPrice(orderDetail.getFood().getPrice());
+                orderDetailResponses.add(orderDetailResponse);
+            }
+
+            OrderResponse orderResponse = new OrderResponse();
+            orderResponse.setOrderId(order.getId());
+            orderResponse.setAddressReceive(order.getAddressReceive());
+            orderResponse.setDateOrder(order.getOrderDate());
+            orderResponse.setPaymentMethod(order.getPayment().getPaymentName());
+            orderResponse.setShipName(order.getShip().getShipName());
+            orderResponse.setShipPrice(order.getShipPrice());
+            orderResponse.setTotalFood(order.getTotalFood());
+            orderResponse.setTotalPrice(order.getTotalPrice());
+            orderResponse.setOrderDetails(orderDetailResponses);
+            response.add(orderResponse);
+        }
+
+        return response;
     }
 }

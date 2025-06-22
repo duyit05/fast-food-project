@@ -15,7 +15,7 @@ import java.util.List;
 
 public interface FoodService {
 
-    PageResponse<?> getAllFood(int pageNo, int pageSize, String sortBy, String keyword);
+    PageResponse<?> getAllFood(Integer pageNo, Integer pageSize, String sortBy, String keyword);
     FoodResponse createFood (FoodRequest request) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException;
     FoodResponse updateFood (long foodId, FoodRequest request) throws ServerException, InsufficientDataException, ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidResponseException, XmlParserException, InternalException;
     void deleteFood (long foodId);

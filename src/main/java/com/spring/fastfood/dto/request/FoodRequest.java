@@ -25,6 +25,7 @@ public class FoodRequest {
     private Double lastedPrice;
     @Min(value = 10, message = "price must be greater than 10")
     private Double price;
+    private MultipartFile image;
     private List<Long> categoryId;
     private List<MultipartFile> images;
 }

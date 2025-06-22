@@ -39,8 +39,8 @@ public class FoodController {
 
     @GetMapping("/list-food")
     public DataResponse<PageResponse<?>> getAllFood(
-            @RequestParam @Min(1) int pageNo,
-            @RequestParam int pageSize,
+            @RequestParam (required = false) Integer pageNo,
+            @RequestParam (required = false) Integer pageSize,
             @RequestParam (required = false)String sortBy,
             @RequestParam (required = false) String keyword
             ) {
@@ -68,7 +68,7 @@ public class FoodController {
 
     @GetMapping("/{foodId}")
     public DataResponse<FoodResponse> getFoodById (@PathVariable long foodId){
-        return new DataResponse<>(HttpStatus.ACCEPTED.value(), "get detail food",foodService.getDetailFood(foodId));
+        return new DataResponse<>(HttpStatus.OK.value(), "get detail food",foodService.getDetailFood(foodId));
     }
 
     @GetMapping("/by-category")

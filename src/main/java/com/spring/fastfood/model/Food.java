@@ -24,7 +24,7 @@ public class Food extends AbstractEntity <Long>{
     @Column(name = "food_name")
     private String foodName;
 
-    @Column(name = "description")
+    @Column(name = "description" , columnDefinition = "LONGTEXT")
     private String description;
 
     @Column(name = "lasted_price")
@@ -32,6 +32,9 @@ public class Food extends AbstractEntity <Long>{
 
     @Column(name = "price")
     private Double price;
+
+    @Column(name = "image_food" , columnDefinition = "LONGTEXT")
+    private String imageFood;
 
     @OneToMany(mappedBy = "food",cascade = CascadeType.ALL , orphanRemoval = true)
     private List<Image> images = new ArrayList<>();

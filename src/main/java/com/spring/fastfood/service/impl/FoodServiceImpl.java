@@ -49,8 +49,11 @@ public class FoodServiceImpl implements FoodService {
 
 
     @Override
-    public PageResponse<?> getAllFood(int pageNo, int pageSize, String sortBy, String keyword) {
-        int page = Math.max(pageNo - 1, 0);
+    public PageResponse<?> getAllFood(Integer pageNo, Integer pageSize, String sortBy, String keyword) {
+        int page = Math.max((pageNo != null ? pageNo : 1) - 1, 0);
+        log.info("page: {}",page);
+        int size = (pageSize != null ? pageSize : 10);
+        log.info("size: {}",size);
 
         // sort
         List<Sort.Order> sorts = new ArrayList<>();
@@ -63,7 +66,7 @@ public class FoodServiceImpl implements FoodService {
                 sorts.add(new Sort.Order(direction, matcher.group(1)));
             }
         }
-        Pageable pageable = PageRequest.of(page, pageSize, Sort.by(sorts));
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sorts));
         // Chuyển String thành list<String>
         Page<Food> foods = StringUtils.hasLength(keyword) ? foodRepository.searchByKeyWord(keyword, pageable)
                 : foodRepository.findAll(pageable);
@@ -88,12 +91,13 @@ public class FoodServiceImpl implements FoodService {
                     foodResponse.setAverageRating(calculateRating(food.getReviews()));
                     foodResponse.setCategories(categoryResponses);
                     foodResponse.setImages(images);
+                    foodResponse.setImageFood(food.getImageFood());
                     return foodResponse;
                 }).collect(Collectors.toList());
 
         return PageResponse.builder()
-                .pageNo(pageNo)
-                .pageSize(pageSize)
+                .pageNo(page)
+                .pageSize(size)
                 .totalPage(foods.getTotalPages())
                 .items(responses)
                 .build();
@@ -110,11 +114,14 @@ public class FoodServiceImpl implements FoodService {
         return average;
     }
 
+
+
     @Override
     public FoodResponse createFood(FoodRequest request) throws ServerException, InsufficientDataException,
             ErrorResponseException, IOException, NoSuchAlgorithmException, InvalidKeyException,
             InvalidResponseException, XmlParserException, InternalException {
         Food food = foodMapper.toFood(request);
+        food.setImageFood(minioChannel.update(request.getImage()));
         Food foodSaved = foodRepository.save(food);
 
         List<FoodCategory> foodCategories = new ArrayList<>();
@@ -153,6 +160,7 @@ public class FoodServiceImpl implements FoodService {
             responses.add(response);
         }
         foodResponse.setImages(responses);
+        foodResponse.setImageFood(foodSaved.getImageFood());
 
         return foodResponse;
     }
@@ -218,7 +226,11 @@ public class FoodServiceImpl implements FoodService {
     @Override
     public FoodResponse getDetailFood(long foodId) {
         Food food = getFoodById(foodId);
-        return foodMapper.toFoodResponse(food);
+        log.info("image: {}" , food.getImageFood());
+        FoodResponse response = foodMapper.toFoodResponse(food);
+        response.setAverageRating(calculateRating(food.getReviews()));
+        response.setNumberAverage(food.getReviews().size());
+        return response;
     }
 
     @Override
